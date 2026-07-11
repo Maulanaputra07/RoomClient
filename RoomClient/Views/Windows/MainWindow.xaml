@@ -1,0 +1,83 @@
+﻿<ui:FluentWindow
+    x:Class="RoomClient.Views.Windows.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:header="clr-namespace:RoomClient.Views.Header"
+    xmlns:player="clr-namespace:RoomClient.Views.Player"
+    xmlns:queue="clr-namespace:RoomClient.Views.Queue"
+    xmlns:search="clr-namespace:RoomClient.Views.Search"
+    xmlns:songList="clr-namespace:RoomClient.Views.SongList"
+    xmlns:status="clr-namespace:RoomClient.Views.Status"
+    mc:Ignorable="d"
+    Title="Room Client - Karaoke Room"
+    Width="1600"
+    Height="980"
+    MinWidth="1152"
+    MinHeight="720"
+    WindowStartupLocation="CenterScreen"
+    Loaded="OnLoaded">
+
+    <Grid Background="#FF08111F" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" UseLayoutRounding="True" SnapsToDevicePixels="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Grid.Row="0"
+            Margin="12,12,12,10"
+            Padding="12"
+            Background="#FF0F172A"
+            CornerRadius="16"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Top">
+            <header:HeaderView />
+        </Border>
+
+        <Grid Grid.Row="1" Margin="12,0,12,12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" Margin="0,0,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Margin="0,0,0,10" Background="#FF0F172A" CornerRadius="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="480">
+                    <player:PlayerView />
+                </Border>
+
+                <Border Grid.Row="1" Background="#FF0F172A" CornerRadius="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <queue:QueueView />
+                </Border>
+            </Grid>
+
+            <Grid Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Margin="0,0,0,10" Background="#FF0F172A" CornerRadius="16" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                    <search:SearchView />
+                </Border>
+
+                <Border Grid.Row="1" Margin="0,0,0,10" Background="#FF0F172A" CornerRadius="16" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                    <status:StatusView />
+                </Border>
+
+                <Border Grid.Row="2" Background="#FF0F172A" CornerRadius="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <songList:SongListView />
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+
+</ui:FluentWindow>

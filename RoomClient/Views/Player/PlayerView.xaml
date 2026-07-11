@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="RoomClient.Views.Player.PlayerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             mc:Ignorable="d"
+            d:DesignHeight="380"
+            d:DesignWidth="1200">
+            <Grid Margin="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Left">
+                <TextBlock FontSize="17" FontWeight="SemiBold" Foreground="White" Text="Video Player" />
+            </StackPanel>
+
+                    <Border DockPanel.Dock="Right" Padding="10,6" Background="#FF111827" CornerRadius="999">
+                        <TextBlock Foreground="#FFFBBF24" Text="{Binding Player.NowPlaying}" />
+            </Border>
+        </DockPanel>
+
+                <Border Grid.Row="1" Background="#FF020617" CornerRadius="16" BorderBrush="#FF1F2937" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid>
+                        <wv2:WebView2 x:Name="PlayerWebView" />
+
+                        <Border Background="#AA020617" VerticalAlignment="Bottom" Padding="12" CornerRadius="0,0,16,16">
+                    <StackPanel>
+                                <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="Video screen" />
+                                <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="Area WebView2 untuk menampilkan video karaoke, lirik, atau halaman pemutaran." />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
