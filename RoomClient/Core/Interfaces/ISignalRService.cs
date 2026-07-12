@@ -8,5 +8,12 @@ namespace RoomClient.Core.Interfaces
 {
     public interface ISignalRService
     {
+        bool IsConnected { get; }
+
+        Task<bool> ConnectAsync(CancellationToken cancellationToken = default);
+
+        Task<bool> SendSessionStartedAsync(
+            RoomClient.Core.Models.SessionStartedPayload payload,
+            CancellationToken cancellationToken = default);
     }
 }

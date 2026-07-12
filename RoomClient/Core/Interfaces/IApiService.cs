@@ -8,5 +8,6 @@ namespace RoomClient.Core.Interfaces
 {
     public interface IApiService
     {
+        Task<IReadOnlyList<RoomClient.Core.Models.Room>> GetRoomsAsync(CancellationToken cancellationToken = default);
     }
 }

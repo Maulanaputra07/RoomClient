@@ -45,7 +45,7 @@
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Right" Foreground="#FFFBBF24" Text="{Binding Duration, StringFormat={}{0:hh\:mm\:ss}}" />
+                                    <TextBlock HorizontalAlignment="Right" Foreground="#FFFBBF24" Text="{Binding DurationDisplay}" />
                                 </StackPanel>
                             </Grid>
                         </Border>

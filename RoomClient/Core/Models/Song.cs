@@ -17,5 +17,9 @@ namespace RoomClient.Core.Models
         public string Thumbnail { get; set; } = "";
 
         public TimeSpan? Duration { get; set; }
+
+        public string DurationDisplay => Duration.HasValue
+            ? Duration.Value.ToString(@"hh\:mm\:ss")
+            : "-";
     }
 }

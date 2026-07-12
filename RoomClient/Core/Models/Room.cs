@@ -1,17 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace RoomClient.Core.Models
 {
     public class Room
     {
-        public string RoomName { get; set; } = "";
+        [JsonPropertyName("room_id")]
+        public int RoomId { get; set; }
 
-        public TimeSpan RemainingTime { get; set; }
+        [JsonPropertyName("room_number")]
+        public string RoomNumber { get; set; } = string.Empty;
 
-        public bool IsConnected { get; set; }
+        [JsonPropertyName("client_ip")]
+        public string ClientIp { get; set; } = string.Empty;
+
+        [JsonPropertyName("room_status")]
+        public string RoomStatus { get; set; } = string.Empty;
+
+        [JsonPropertyName("created_at")]
+        public DateTimeOffset CreatedAt { get; set; }
+
+        [JsonPropertyName("updated_at")]
+        public DateTimeOffset UpdatedAt { get; set; }
     }
 }

@@ -33,9 +33,14 @@ namespace RoomClient.Views.Windows
             DataContext = vm;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Maximized;
+
+            if (DataContext is MainWindowViewModel viewModel)
+            {
+                await viewModel.InitializeAsync();
+            }
         }
     }
 }
