@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RoomClient.Core.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,11 +10,16 @@ namespace RoomClient.Core.Interfaces
     public interface ISignalRService
     {
         bool IsConnected { get; }
+        event EventHandler? SessionExpired;
+        event EventHandler<SessionStartedPayload>? SessionStarted;
 
         Task<bool> ConnectAsync(CancellationToken cancellationToken = default);
 
         Task<bool> SendSessionStartedAsync(
             RoomClient.Core.Models.SessionStartedPayload payload,
             CancellationToken cancellationToken = default);
+
+        Task DisposeSocketAsync();
+
     }
 }

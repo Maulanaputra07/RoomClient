@@ -1,18 +1,28 @@
 ﻿using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
+using RoomClient.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RoomClient.ViewModels;
 
 namespace RoomClient.Services.Player
 {
     public class PlayerService : IPlayerService
     {
+        private readonly PlayerViewModel _playerViewModel;
+
+        public PlayerService(PlayerViewModel playerViewModel)
+        {
+            _playerViewModel = playerViewModel;
+        }
+
         public Task PlayAsync(Song song)
         {
-            throw new NotImplementedException();
+            _playerViewModel.Play(song);
+            return Task.CompletedTask;
         }
 
         public Task PauseAsync()
@@ -22,7 +32,8 @@ namespace RoomClient.Services.Player
 
         public Task StopAsync()
         {
-            throw new NotImplementedException();
+            _playerViewModel.Stop();
+            return Task.CompletedTask;
         }
     }
 }

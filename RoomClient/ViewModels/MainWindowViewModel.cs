@@ -24,6 +24,8 @@ namespace RoomClient.ViewModels
 
             Search.Results = SongList.Results;
             Search.Player = Player;
+
+            _signalRService.SessionExpired += OnSessionExpired;
         }
 
         public SearchViewModel Search { get; }
@@ -42,6 +44,11 @@ namespace RoomClient.ViewModels
 
             var connected = await _signalRService.ConnectAsync();
             Status.MarkWebSocketEngineReady(connected);
+        }
+
+        private void OnSessionExpired(object? sender, EventArgs e)
+        {
+            Player.Stop();
         }
     }
 }

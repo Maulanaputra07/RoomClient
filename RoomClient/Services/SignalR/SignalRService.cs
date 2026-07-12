@@ -9,6 +9,8 @@ namespace RoomClient.Services.SignalR
 {
     public class SignalRService : ISignalRService
     {
+        public event EventHandler? SessionExpired;
+        public event EventHandler<SessionStartedPayload>? SessionStarted;
         private static readonly Uri ServerUri = new("http://192.168.201.220:3000");
         private SocketIOClient.SocketIO? _client;
 
@@ -56,8 +58,6 @@ namespace RoomClient.Services.SignalR
         {
             if (_client == null) return;
 
-            // --- Lifecycle events (signature berubah di v4) ---
-
             _client.OnConnected += (s, e) =>
                 SocketLogger.Log("LIFECYCLE", $"OnConnected fired. Id={_client!.Id}");
 
@@ -73,14 +73,13 @@ namespace RoomClient.Services.SignalR
             _client.OnError += (s, err) =>
                 SocketLogger.Log("ERROR", err);
 
-            // Catch-all semua event dari server (handler sekarang async di v4)
             _client.OnAny(async (eventName, ctx) =>
             {
                 SocketLogger.Log("RAW-EVENT", $"{eventName} => {ctx.RawText}");
                 await Task.CompletedTask;
             });
 
-            // --- Event spesifik ---
+           
 
             _client.On("session_started", async ctx =>
             {
@@ -96,6 +95,7 @@ namespace RoomClient.Services.SignalR
                         MessageBoxImage.Information);
 
                     // Logic buka layar aplikasi ada di sini
+                    SessionStarted?.Invoke(this, data);
                 });
 
                 await Task.CompletedTask;
@@ -114,6 +114,7 @@ namespace RoomClient.Services.SignalR
                         MessageBoxImage.Warning);
 
                     // Logic kunci layar aplikasi ada di sini
+                    SessionExpired?.Invoke(this, EventArgs.Empty);
                 });
 
                 await Task.CompletedTask;

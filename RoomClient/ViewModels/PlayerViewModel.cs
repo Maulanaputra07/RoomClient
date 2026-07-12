@@ -40,5 +40,11 @@ namespace RoomClient.ViewModels
 
             PlayerHtml = _youtubeService.BuildPlayerHtml(song);
         }
+
+        public void Stop()
+        {
+            NowPlaying = "waiting";
+            PlayerHtml = null;
+        }
     }
 }
