@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using RoomClient.Core.Interfaces;
+using RoomClient.Core.Models;
 
 namespace RoomClient.ViewModels
 {
@@ -25,7 +26,9 @@ namespace RoomClient.ViewModels
             Search.Results = SongList.Results;
             Search.Player = Player;
 
+            _signalRService.SessionStarted += OnSessionStarted;
             _signalRService.SessionExpired += OnSessionExpired;
+            _signalRService.SessionExtended += OnSessionExtended;
         }
 
         public SearchViewModel Search { get; }
@@ -49,6 +52,16 @@ namespace RoomClient.ViewModels
         private void OnSessionExpired(object? sender, EventArgs e)
         {
             Player.Stop();
+        }
+
+        private void OnSessionStarted(object? sender, SessionStartedPayload data)
+        {
+            Player.ActivateSession(data.EndTime);
+        }
+
+        private void OnSessionExtended(object? sender, SessionStartedPayload data)
+        {
+            Player.ExtendSession(data.EndTime);
         }
     }
 }

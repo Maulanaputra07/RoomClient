@@ -76,13 +76,21 @@ namespace RoomClient.Views.Player
 
         private async Task LoadCurrentPlayerHtmlAsync()
         {
-            if (!_webViewInitialized || _playerViewModel?.PlayerHtml is not { Length: > 0 } html)
+            if (!_webViewInitialized)
             {
                 return;
             }
 
-            _player?.LoadHtml(html);
-            await Task.CompletedTask;
+            if (_playerViewModel?.PlayerHtml is { Length: > 0 } html)
+            {
+                _player?.LoadHtml(html);
+            }
+            else
+            {
+                _player?.Clear();
+            }
+
+                await Task.CompletedTask;
         }
 
         private async Task EnsureWebViewAsync()

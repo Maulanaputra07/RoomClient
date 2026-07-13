@@ -88,6 +88,12 @@ namespace RoomClient.ViewModels
 
             if (Results.Count > 0 && Player is not null)
             {
+                if (!Player.IsSessionActive)
+                {
+                    StatusMessage = "Sesi belum dimulai — tidak bisa memutar lagu.";
+                    return;
+                }
+
                 Player.Play(Results[0]);
                 StatusMessage = $"Playing {Results[0].Title} in WebView2.";
             }

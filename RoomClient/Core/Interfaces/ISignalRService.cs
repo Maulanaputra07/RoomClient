@@ -12,6 +12,7 @@ namespace RoomClient.Core.Interfaces
         bool IsConnected { get; }
         event EventHandler? SessionExpired;
         event EventHandler<SessionStartedPayload>? SessionStarted;
+        event EventHandler<SessionStartedPayload>? SessionExtended;
 
         Task<bool> ConnectAsync(CancellationToken cancellationToken = default);
 

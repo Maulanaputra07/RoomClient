@@ -31,6 +31,11 @@ namespace RoomClient.Helpers
             _webView.NavigateToString(html);
         }
 
+        public void Clear()
+        {
+            _webView.CoreWebView2?.NavigateToString("<html><body style='background:black;margin:0'></body></html>");
+        }
+
         private void CoreWebView2_WebResourceRequested(
             object? sender,
             CoreWebView2WebResourceRequestedEventArgs e)

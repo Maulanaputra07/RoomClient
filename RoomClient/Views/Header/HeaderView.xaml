@@ -3,16 +3,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:RoomClient.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="120"
              d:DesignWidth="1200">
+
+    <UserControl.Resources>
+        <helpers:BoolToSessionStatusTextConverter x:Key="StatusTextConverter" />
+        <helpers:BoolToSessionStatusBrushConverter x:Key="StatusBrushConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
             <Border Width="48" Height="48" Background="#FF2563EB" CornerRadius="14">
                 <TextBlock
@@ -23,13 +30,34 @@
                     Foreground="White"
                     Text="R" />
             </Border>
-
             <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
                 <TextBlock FontSize="22" FontWeight="SemiBold" Foreground="White" Text="Room Client" />
                 <TextBlock FontSize="13" Foreground="#FF94A3B8" Text="Karaoke room control panel" />
             </StackPanel>
         </StackPanel>
-
-        
+        <Border Grid.Column="2"
+                Margin="0,0,20,0"
+                Padding="12,6"
+                CornerRadius="12"
+                Background="#FF1E293B"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Ellipse Width="10" Height="10"
+                         VerticalAlignment="Center"
+                         Fill="{Binding Player.IsSessionActive, Converter={StaticResource StatusBrushConverter}}" />
+                <TextBlock Margin="8,0,0,0"
+                           FontSize="13"
+                           FontWeight="Medium"
+                           Foreground="White"
+                           Text="{Binding Player.IsSessionActive, Converter={StaticResource StatusTextConverter}}" />
+                <TextBlock Margin="10,0,0,0"
+                   FontSize="13"
+                   FontWeight="Bold"
+                   Foreground="#FFFACC15"
+                   Text="{Binding Player.RemainingTimeText}"
+                   Visibility="{Binding Player.IsSessionActive, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

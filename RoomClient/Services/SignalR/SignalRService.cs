@@ -11,7 +11,8 @@ namespace RoomClient.Services.SignalR
     {
         public event EventHandler? SessionExpired;
         public event EventHandler<SessionStartedPayload>? SessionStarted;
-        private static readonly Uri ServerUri = new("http://192.168.201.220:3000");
+        public event EventHandler<SessionStartedPayload>? SessionExtended;
+        private static readonly Uri ServerUri = new("http://100.114.192.55:3000");
         private SocketIOClient.SocketIO? _client;
 
         public bool IsConnected => _client?.Connected ?? false;
@@ -58,8 +59,19 @@ namespace RoomClient.Services.SignalR
         {
             if (_client == null) return;
 
-            _client.OnConnected += (s, e) =>
+            _client.OnConnected += async (s, e) =>
+            {
                 SocketLogger.Log("LIFECYCLE", $"OnConnected fired. Id={_client!.Id}");
+                try
+                {
+                    await _client.EmitAsync("request_async");
+                    SocketLogger.Log("EMIT", "request_sync sent");
+                }
+                catch (Exception ex)
+                {
+                    SocketLogger.Log("EMIT-ERROR", $"request_sync failed: {ex.Message}");
+                }
+            };
 
             _client.OnDisconnected += (s, reason) =>
                 SocketLogger.Log("LIFECYCLE", $"OnDisconnected. Reason={reason}");
@@ -88,13 +100,6 @@ namespace RoomClient.Services.SignalR
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show(
-                        $"Session Started! Room: {data.RoomId}, Duration: {data.DurationMinutes}m",
-                        "RoomClient",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-
-                    // Logic buka layar aplikasi ada di sini
                     SessionStarted?.Invoke(this, data);
                 });
 
@@ -107,14 +112,26 @@ namespace RoomClient.Services.SignalR
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    SessionExpired?.Invoke(this, EventArgs.Empty);
+                });
+
+                await Task.CompletedTask;
+            });
+
+            _client.On("session_extended", async ctx =>
+            {
+                var data = ctx.GetValue<SessionStartedPayload>(0);
+                SocketLogger.LogEvent("session_extended", data);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    SessionExtended?.Invoke(this, data);
+
                     MessageBox.Show(
-                        "Waktu Habis! Layar akan dikunci.",
+                        $"Sesi diperpanjang! Durasi baru: {data.DurationMinutes}m",
                         "RoomClient",
                         MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-
-                    // Logic kunci layar aplikasi ada di sini
-                    SessionExpired?.Invoke(this, EventArgs.Empty);
+                        MessageBoxImage.Information);
                 });
 
                 await Task.CompletedTask;
