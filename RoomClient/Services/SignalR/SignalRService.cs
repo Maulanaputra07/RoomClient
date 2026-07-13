@@ -126,12 +126,6 @@ namespace RoomClient.Services.SignalR
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     SessionExtended?.Invoke(this, data);
-
-                    MessageBox.Show(
-                        $"Sesi diperpanjang! Durasi baru: {data.DurationMinutes}m",
-                        "RoomClient",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
                 });
 
                 await Task.CompletedTask;
