@@ -8,15 +8,17 @@ namespace RoomClient.Core.Models
 {
     public class Song
     {
-        public string Title { get; set; } = "";
+        public required string Title { get; set; } = "";
 
-        public string Artist { get; set; } = "";
+        public string? Artist { get; set; } = "";
 
-        public string VideoId { get; set; } = "";
+        public required string VideoId { get; set; } = "";
 
-        public string Thumbnail { get; set; } = "";
+        public string? Thumbnail { get; set; } = "";
 
         public TimeSpan? Duration { get; set; }
+
+        public long ViewCount { get; set; }
 
         public string DurationDisplay => Duration.HasValue
             ? Duration.Value.ToString(@"hh\:mm\:ss")

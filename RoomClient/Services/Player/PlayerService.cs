@@ -21,7 +21,7 @@ namespace RoomClient.Services.Player
 
         public Task PlayAsync(Song song)
         {
-            _playerViewModel.Play(song);
+            _playerViewModel.PlayAsync(song);
             return Task.CompletedTask;
         }
 

@@ -11,19 +11,27 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
             <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Room Status" />
-            <TextBlock Margin="0,4,0,8" FontSize="12" Foreground="#FF94A3B8" Text="Data rooms dari API lokal." />
+            <TextBlock Margin="0,4,0,8" FontSize="12" Foreground="#FF94A3B8" Text="Informasi ruangan Anda." />
         </StackPanel>
 
-        <Border Grid.Row="1" Margin="0,0,0,10" Padding="12" Background="#FF111827" CornerRadius="14">
+        <!-- Ringkasan sesi untuk client: waktu tersisa, bukan log teknis -->
+        <Border Grid.Row="1" Margin="0,0,0,10" Padding="16" Background="#FF111827" CornerRadius="14">
             <StackPanel>
-                <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="Status" />
-                <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="{Binding Status.StatusMessage}" TextWrapping="Wrap" />
-                <TextBlock Margin="0,4,0,0" FontSize="12" Foreground="#FFF87171" Text="{Binding Status.ErrorMessage}" TextWrapping="Wrap" />
+                <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="Sisa Waktu Sesi" />
+                <TextBlock Margin="0,4,0,0"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#FFFACC15"
+                           Text="{Binding Player.RemainingTimeText, FallbackValue=--:--}" />
+                <TextBlock Margin="0,8,0,0"
+                           FontSize="13"
+                           Foreground="White"
+                           Text="{Binding Status.StatusMessage}"
+                           TextWrapping="Wrap" />
             </StackPanel>
         </Border>
 
@@ -40,28 +48,12 @@
                                             <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="White" Text="{Binding RoomStatus}" />
                                         </Border>
                                     </DockPanel>
-
-                                    <TextBlock Margin="0,6,0,0" FontSize="12" Foreground="#FF94A3B8" Text="{Binding ClientIp, StringFormat=Client IP: {0}}" />
-                                    <TextBlock Margin="0,2,0,0" FontSize="12" Foreground="#FF94A3B8" Text="{Binding RoomId, StringFormat=Room ID: {0}}" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
-        </Border>
-
-        <Border Grid.Row="3" Margin="0,10,0,0" Padding="12" Background="#FF111827" CornerRadius="14">
-            <StackPanel>
-                <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="WebSocket Log" />
-                <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding Status.EventLogs}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Margin="0,0,0,4" FontSize="12" Foreground="White" Text="{Binding}" TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
         </Border>
     </Grid>
 </UserControl>

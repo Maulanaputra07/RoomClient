@@ -10,7 +10,8 @@ namespace RoomClient.Core.Interfaces
     public interface IYoutubeService
     {
         Task<List<Song>> SearchAsync(string keyword);
+        Task<string?> GetStreamUrlAsync(string videoId);
 
-        string BuildPlayerHtml(Song song);
+        string BuildPlayerHtml(string streamUrl);
     }
 }

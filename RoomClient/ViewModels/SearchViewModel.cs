@@ -94,7 +94,7 @@ namespace RoomClient.ViewModels
                     return;
                 }
 
-                Player.Play(Results[0]);
+                Player.PlayAsync(Results[0]);
                 StatusMessage = $"Playing {Results[0].Title} in WebView2.";
             }
         }

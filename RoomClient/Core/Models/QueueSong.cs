@@ -8,10 +8,8 @@ namespace RoomClient.Core.Models
 {
     public class QueueSong
     {
-        public Song Song { get; set; } = new();
-
+        public required Song Song { get; set; }
         public string RequestedBy { get; set; } = "";
-
         public DateTime RequestedAt { get; set; } = DateTime.Now;
     }
 }

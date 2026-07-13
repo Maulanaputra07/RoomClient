@@ -98,7 +98,7 @@ namespace RoomClient.ViewModels
         }
 
 
-        public void Play(Song song)
+        public async Task PlayAsync(Song song)
         {
             if (!IsSessionActive)
             {
@@ -111,10 +111,27 @@ namespace RoomClient.ViewModels
                 return;
             }
 
-            NowPlaying = string.IsNullOrWhiteSpace(song.Artist)
-                ? song.Title
-                : $"{song.Title} - {song.Artist}";
-            PlayerHtml = _youtubeService.BuildPlayerHtml(song);
+            NowPlaying = "Memuat...";
+
+            try
+            {
+                var streamUrl = await _youtubeService.GetStreamUrlAsync(song.VideoId);
+
+                if (string.IsNullOrWhiteSpace(streamUrl))
+                {
+                    NowPlaying = "Gagal memuat stream";
+                    return;
+                }
+
+                NowPlaying = string.IsNullOrWhiteSpace(song.Artist)
+                    ? song.Title
+                    : $"{song.Title} - {song.Artist}";
+                PlayerHtml = _youtubeService.BuildPlayerHtml(streamUrl);
+            }
+            catch (Exception ex)
+            {
+                NowPlaying = $"Gagal memutar: {ex.Message}";
+            }
         }
 
         public void Stop()

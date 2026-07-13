@@ -46,7 +46,7 @@ namespace RoomClient
 
                 services.AddSingleton<StatusViewModel>();
 
-                services.AddSingleton<IYoutubeService, YoutubeService>();
+                services.AddHttpClient<IYoutubeService, YoutubeService>();
 
                 services.AddSingleton<IPlayerService, PlayerService>();
 
