@@ -3,62 +3,75 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:RoomClient.Helpers"
              mc:Ignorable="d"
              d:DesignHeight="540"
              d:DesignWidth="1200">
+    <UserControl.Resources>
+        <helpers:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+    </UserControl.Resources>
     <Grid Margin="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-                <DockPanel Margin="0,0,0,12">
+        <DockPanel Margin="0,0,0,12">
             <StackPanel DockPanel.Dock="Left">
-                        <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Song List" />
-                        <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="Antrian lagu yang akan diputar di room." />
+                <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Song List" />
+                <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="Antrian lagu yang akan diputar di room." />
             </StackPanel>
-
             <Border DockPanel.Dock="Right" Padding="12,8" Background="#FF111827" CornerRadius="999">
                 <TextBlock Foreground="#FF60A5FA" Text="{Binding Search.Results.Count, StringFormat={}{0} items}" />
             </Border>
         </DockPanel>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl ItemsSource="{Binding Search.Results}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Margin="0,0,0,10" Padding="14" Background="#FF111827" CornerRadius="14">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+        <Grid Grid.Row="1">
+            <!-- Pesan kalau kosong -->
+            <TextBlock Text="Belum ada hasil pencarian."
+                       Foreground="#FF64748B"
+                       FontSize="13"
+                       HorizontalAlignment="Center"
+                       Margin="0,20,0,20"
+                       Visibility="{Binding Search.Results.Count, Converter={StaticResource CountToVisibilityConverter}}" />
 
-                                <Border Width="48" Height="48" Background="#FF1D4ED8" CornerRadius="12">
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" Text="YT" />
-                                </Border>
-
-                                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock FontSize="11" Foreground="#FF94A3B8" Text="{Binding Artist}" TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                    <TextBlock HorizontalAlignment="Right" Foreground="#FFFBBF24" Text="{Binding DurationDisplay}" />
-                                </StackPanel>
-                                <Button Grid.Column="3"
-                                        Padding="14,6"
-                                        Background="#FF2563EB"
-                                        Foreground="White"
-                                        Content="Play"
-                                        Command="{Binding DataContext.SongList.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="340">
+                <ItemsControl ItemsSource="{Binding Search.Results}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,10" Padding="14" Background="#FF111827" CornerRadius="14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="48" Height="48" Background="#FF1D4ED8" CornerRadius="12">
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" Text="YT" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock FontSize="11" Foreground="#FF94A3B8" Text="{Binding Artist}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0">
+                                        <TextBlock HorizontalAlignment="Right" Foreground="#FFFBBF24" Text="{Binding DurationDisplay}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="3"
+                                            Padding="14,6"
+                                            Background="#FF2563EB"
+                                            Foreground="White"
+                                            Content="Play"
+                                            Command="{Binding DataContext.SongList.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

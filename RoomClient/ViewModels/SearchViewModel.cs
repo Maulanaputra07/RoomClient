@@ -14,7 +14,7 @@ namespace RoomClient.ViewModels
     public partial class SearchViewModel : ObservableObject
     {
         private readonly IYoutubeService _youtubeService;
-        private string _searchQuery = "bruno mars";
+        private string _searchQuery;
         private bool _isBusy;
         private string _statusMessage = "Ready — using dummy YouTube data for local test.";
 

@@ -3,27 +3,71 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:RoomClient.Helpers"
              mc:Ignorable="d"
-            d:DesignHeight="100"
+             d:DesignHeight="140"
              d:DesignWidth="1200">
-            <StackPanel Margin="14" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <DockPanel Margin="0,0,0,8">
-                    <TextBlock DockPanel.Dock="Left" FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Queue" />
-                    <TextBlock DockPanel.Dock="Right" FontSize="12" Foreground="#FF94A3B8" Text="3 songs waiting" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+    <UserControl.Resources>
+        <helpers:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <StackPanel Margin="14" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+        <DockPanel Margin="0,0,0,8">
+            <TextBlock DockPanel.Dock="Left" FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Queue" />
+            <TextBlock DockPanel.Dock="Right"
+                       FontSize="12"
+                       Foreground="#FF94A3B8"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"
+                       Text="{Binding Queue.Items.Count, StringFormat={}{0} songs waiting}" />
         </DockPanel>
 
-                <Border Padding="12" Background="#FF111827" CornerRadius="14">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                            <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="White" Text="1. Reckless Love - Ballad Version" />
-                            <TextBlock FontSize="11" Foreground="#FF94A3B8" Text="Requested by Guest 01" />
-                </StackPanel>
-                <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#FF34D399" Text="Now" />
-            </Grid>
+        <!-- Pesan kalau antrian kosong -->
+        <Border Padding="16"
+                Background="#FF111827"
+                CornerRadius="14"
+                Visibility="{Binding Queue.Items.Count, Converter={StaticResource CountToVisibilityConverter}}">
+            <TextBlock Text="Belum ada lagu dalam antrian."
+                       Foreground="#FF64748B"
+                       FontSize="13"
+                       HorizontalAlignment="Center" />
         </Border>
+
+        <!-- Antrian lagu, horizontal scroll -->
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Queue.Items}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,10,0" Padding="14" Background="#FF111827" CornerRadius="14" MinWidth="220" MaxWidth="280">
+                            <StackPanel>
+                                <DockPanel LastChildFill="False">
+                                    <TextBlock DockPanel.Dock="Left"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               Text="{Binding Song.Title}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock DockPanel.Dock="Right"
+                                               FontSize="12"
+                                               Foreground="#FF34D399"
+                                               Text="{Binding QueuePosition, StringFormat=#{0}}" />
+                                </DockPanel>
+                                <TextBlock Margin="0,4,0,0"
+                                           FontSize="11"
+                                           Foreground="#FF94A3B8"
+                                           Text="{Binding RequestedBy, StringFormat=Requested by {0}}"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </StackPanel>
 </UserControl>
