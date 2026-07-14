@@ -83,7 +83,6 @@ namespace RoomClient.ViewModels
         [RelayCommand]
         private async Task TestBrunoMarsAsync()
         {
-            SearchQuery = "bruno mars";
             await SearchAsync();
 
             if (Results.Count > 0 && Player is not null)
