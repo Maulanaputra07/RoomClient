@@ -16,7 +16,7 @@ namespace RoomClient.ViewModels
         private readonly IYoutubeService _youtubeService;
         private string _searchQuery;
         private bool _isBusy;
-        private string _statusMessage = "Ready — using dummy YouTube data for local test.";
+        private string _statusMessage = "Ready";
 
         public SearchViewModel(IYoutubeService youtubeService)
         {
@@ -54,7 +54,7 @@ namespace RoomClient.ViewModels
             }
 
             IsBusy = true;
-            StatusMessage = $"Loading dummy results for '{SearchQuery}'...";
+            StatusMessage = $"Loading results for '{SearchQuery}'...";
 
             try
             {
@@ -67,8 +67,8 @@ namespace RoomClient.ViewModels
                 }
 
                 StatusMessage = Results.Count > 0
-                    ? $"Loaded {Results.Count} dummy result(s)."
-                    : "No dummy results found.";
+                    ? $"Loaded {Results.Count} result(s)."
+                    : "No results found.";
             }
             catch (Exception ex)
             {
