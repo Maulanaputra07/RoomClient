@@ -23,7 +23,6 @@
                        Text="{Binding Queue.Items.Count, StringFormat={}{0} songs waiting}" />
         </DockPanel>
 
-        <!-- Pesan kalau antrian kosong -->
         <Border Padding="16"
                 Background="#FF111827"
                 CornerRadius="14"
@@ -34,9 +33,8 @@
                        HorizontalAlignment="Center" />
         </Border>
 
-        <!-- Antrian lagu, horizontal scroll -->
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-            <ItemsControl ItemsSource="{Binding Queue.Items}">
+            <ItemsControl x:Name="QueueItemsControl" ItemsSource="{Binding Queue.Items}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal" />
@@ -46,23 +44,33 @@
                     <DataTemplate>
                         <Border Margin="0,0,10,0" Padding="14" Background="#FF111827" CornerRadius="14" MinWidth="220" MaxWidth="280">
                             <StackPanel>
-                                <DockPanel LastChildFill="False">
-                                    <TextBlock DockPanel.Dock="Left"
-                                               FontSize="13"
-                                               FontWeight="SemiBold"
-                                               Foreground="White"
-                                               Text="{Binding Song.Title}"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <TextBlock DockPanel.Dock="Right"
-                                               FontSize="12"
-                                               Foreground="#FF34D399"
-                                               Text="{Binding QueuePosition, StringFormat=#{0}}" />
-                                </DockPanel>
+                                <TextBlock FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Foreground="White"
+                                           Text="{Binding Song.Title}"
+                                           TextTrimming="CharacterEllipsis" />
                                 <TextBlock Margin="0,4,0,0"
                                            FontSize="11"
                                            Foreground="#FF94A3B8"
                                            Text="{Binding RequestedBy, StringFormat=Requested by {0}}"
                                            TextTrimming="CharacterEllipsis" />
+                                <DockPanel Margin="0,8,0,0" LastChildFill="False">
+                                    <Button DockPanel.Dock="Left"
+                                            Margin="0,0,6,0"
+                                            Padding="10,4"
+                                            Background="#FF7F1D1D"
+                                            Foreground="White"
+                                            Content="Remove"
+                                            Command="{Binding DataContext.Queue.RemoveCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                    <Button DockPanel.Dock="Right"
+                                            Padding="10,4"
+                                            Background="#FF2563EB"
+                                            Foreground="White"
+                                            Content="Play"
+                                            Command="{Binding DataContext.Queue.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+                                </DockPanel>
                             </StackPanel>
                         </Border>
                     </DataTemplate>

@@ -26,6 +26,8 @@ namespace RoomClient.ViewModels
             Search.Results = SongList.Results;
             Search.Player = Player;
             SongList.Player = Player;
+            SongList.Queue = Queue;
+            Queue.Player = Player;
 
             _signalRService.SessionStarted += OnSessionStarted;
             _signalRService.SessionExpired += OnSessionExpired;

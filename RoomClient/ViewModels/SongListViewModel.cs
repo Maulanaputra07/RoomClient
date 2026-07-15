@@ -14,6 +14,7 @@ namespace RoomClient.ViewModels
     {
         public ObservableCollection<Song> Results { get; set; } = new();
         public PlayerViewModel? Player { get; set; }
+        public QueueViewModel? Queue { get; set; }
 
         [RelayCommand]
         private async Task PlayAsync(Song? song)
@@ -25,11 +26,21 @@ namespace RoomClient.ViewModels
 
             if (!Player.IsSessionActive)
             {
-                // opsional: tampilkan status kalau ada StatusMessage di sini
                 return;
             }
 
             await Player.PlayAsync(song);
+        }
+
+        [RelayCommand]
+        private void AddToQueue(Song? song)
+        {
+            if (song is null || Queue is null)
+            {
+                return;
+            }
+
+            Queue.Add(song);
         }
     }
 }

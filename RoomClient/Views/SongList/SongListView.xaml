@@ -11,11 +11,9 @@
         <helpers:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
     </UserControl.Resources>
     <Grid Margin="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-
-        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <DockPanel Margin="0,0,0,12">
@@ -37,7 +35,7 @@
                        Margin="0,20,0,20"
                        Visibility="{Binding Search.Results.Count, Converter={StaticResource CountToVisibilityConverter}}" />
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="340">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl ItemsSource="{Binding Search.Results}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -48,18 +46,36 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Width="48" Height="48" Background="#FF1D4ED8" CornerRadius="12">
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" Text="YT" />
+
+                                    <Border Grid.Column="0" Width="64" Height="48" Background="#FF1D4ED8" CornerRadius="12" ClipToBounds="True">
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" Text="YT" />
+                                            <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                                        </Grid>
                                     </Border>
+
                                     <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
                                         <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
                                         <TextBlock FontSize="11" Foreground="#FF94A3B8" Text="{Binding Artist}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock FontSize="10" Foreground="#FF64748B" Text="{Binding ViewCount, StringFormat={}{0:N0} views}" />
                                     </StackPanel>
+
                                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0">
                                         <TextBlock HorizontalAlignment="Right" Foreground="#FFFBBF24" Text="{Binding DurationDisplay}" />
                                     </StackPanel>
+
                                     <Button Grid.Column="3"
+                                            Margin="0,0,10,0"
+                                            Padding="12,6"
+                                            Background="#FF1E293B"
+                                            Foreground="White"
+                                            Content="+ Queue"
+                                            Command="{Binding DataContext.SongList.AddToQueueCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}" />
+
+                                    <Button Grid.Column="4"
                                             Padding="14,6"
                                             Background="#FF2563EB"
                                             Foreground="White"
