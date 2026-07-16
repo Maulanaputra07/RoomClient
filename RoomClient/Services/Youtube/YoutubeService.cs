@@ -12,7 +12,7 @@ namespace RoomClient.Services.Youtube
     public class YoutubeService : IYoutubeService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "http://127.0.0.1:8000";
+        private const string BaseUrl = "http://100.114.192.55:8000";
 
         public YoutubeService(HttpClient httpClient)
         {

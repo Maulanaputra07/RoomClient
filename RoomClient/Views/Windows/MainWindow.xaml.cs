@@ -36,14 +36,14 @@ namespace RoomClient.Views.Windows
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
             // Blokir Alt+F4
-            if (e.Key == Key.F4 && (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt)
+            if (e.SystemKey == Key.F4 && (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt)
             {
                 e.Handled = true;
                 return;
             }
 
             // Blokir Alt+Tab (opsional, tidak selalu bisa di-intercept penuh karena Windows menangkapnya duluan)
-            if (e.Key == Key.Tab && (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt)
+            if (e.SystemKey == Key.Tab && (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt)
             {
                 e.Handled = true;
                 return;

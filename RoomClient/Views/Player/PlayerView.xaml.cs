@@ -1,5 +1,6 @@
-﻿using RoomClient.ViewModels;
+﻿using Microsoft.Web.WebView2.Core;
 using RoomClient.Helpers;
+using RoomClient.ViewModels;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -102,7 +103,15 @@ namespace RoomClient.Views.Player
 
             try
             {
-                await PlayerWebView.EnsureCoreWebView2Async();
+                var options = new CoreWebView2EnvironmentOptions(
+                    "--autoplay-policy=no-user-gesture-required");
+
+                var environment = await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: null,
+                    userDataFolder: null,
+                    options: options);
+
+                await PlayerWebView.EnsureCoreWebView2Async(environment);
 
                 if (PlayerWebView.CoreWebView2 is null)
                 {

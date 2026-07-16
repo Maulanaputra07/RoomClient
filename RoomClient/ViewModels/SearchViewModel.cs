@@ -45,6 +45,12 @@ namespace RoomClient.ViewModels
             set => SetProperty(ref _statusMessage, value);
         }
 
+        public void Reset()
+        {
+            SearchQuery = string.Empty;
+            StatusMessage = "Ready.";
+        }
+
         [RelayCommand]
         private async Task SearchAsync()
         {

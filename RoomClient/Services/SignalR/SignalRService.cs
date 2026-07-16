@@ -64,7 +64,7 @@ namespace RoomClient.Services.SignalR
                 SocketLogger.Log("LIFECYCLE", $"OnConnected fired. Id={_client!.Id}");
                 try
                 {
-                    await _client.EmitAsync("request_async");
+                    await _client.EmitAsync("request_sync");
                     SocketLogger.Log("EMIT", "request_sync sent");
                 }
                 catch (Exception ex)

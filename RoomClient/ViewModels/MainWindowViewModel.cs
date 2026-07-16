@@ -55,6 +55,9 @@ namespace RoomClient.ViewModels
         private void OnSessionExpired(object? sender, EventArgs e)
         {
             Player.Stop();
+            SongList.Results.Clear();
+            Queue.Items.Clear();
+            Search.Reset();
         }
 
         private void OnSessionStarted(object? sender, SessionStartedPayload data)
