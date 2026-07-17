@@ -21,61 +21,70 @@
                        VerticalAlignment="Center"
                        Margin="10,0,0,0"
                        Text="{Binding Queue.Items.Count, StringFormat={}{0} songs waiting}" />
+            <Button DockPanel.Dock="Right"
+                    Margin="0,0,10,0"
+                    Padding="10,6"
+                    Background="#FF1E293B"
+                    Foreground="White"
+                    x:Name="ToggleButton"
+                    Click="OnToggleClick" />
         </DockPanel>
 
-        <Border Padding="16"
-                Background="#FF111827"
-                CornerRadius="14"
-                Visibility="{Binding Queue.Items.Count, Converter={StaticResource CountToVisibilityConverter}}">
-            <TextBlock Text="Belum ada lagu dalam antrian."
-                       Foreground="#FF64748B"
-                       FontSize="13"
-                       HorizontalAlignment="Center" />
-        </Border>
+        <Grid x:Name="ContentGrid">
+            <Border Padding="16"
+                    Background="#FF111827"
+                    CornerRadius="14"
+                    Visibility="{Binding Queue.Items.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                <TextBlock Text="Belum ada lagu dalam antrian."
+                           Foreground="#FF64748B"
+                           FontSize="13"
+                           HorizontalAlignment="Center" />
+            </Border>
 
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-            <ItemsControl x:Name="QueueItemsControl" ItemsSource="{Binding Queue.Items}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Margin="0,0,10,0" Padding="14" Background="#FF111827" CornerRadius="14" MinWidth="220" MaxWidth="280">
-                            <StackPanel>
-                                <TextBlock FontSize="13"
-                                           FontWeight="SemiBold"
-                                           Foreground="White"
-                                           Text="{Binding Song.Title}"
-                                           TextTrimming="CharacterEllipsis" />
-                                <TextBlock Margin="0,4,0,0"
-                                           FontSize="11"
-                                           Foreground="#FF94A3B8"
-                                           Text="{Binding RequestedBy, StringFormat=Requested by {0}}"
-                                           TextTrimming="CharacterEllipsis" />
-                                <DockPanel Margin="0,8,0,0" LastChildFill="False">
-                                    <Button DockPanel.Dock="Left"
-                                            Margin="0,0,6,0"
-                                            Padding="10,4"
-                                            Background="#FF7F1D1D"
-                                            Foreground="White"
-                                            Content="Remove"
-                                            Command="{Binding DataContext.Queue.RemoveCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}" />
-                                    <Button DockPanel.Dock="Right"
-                                            Padding="10,4"
-                                            Background="#FF2563EB"
-                                            Foreground="White"
-                                            Content="Play"
-                                            Command="{Binding DataContext.Queue.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}" />
-                                </DockPanel>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Queue.Items}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,10,0" Padding="14" Background="#FF111827" CornerRadius="14" MinWidth="220" MaxWidth="280">
+                                <StackPanel>
+                                    <TextBlock FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               Text="{Binding Song.Title}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               FontSize="11"
+                                               Foreground="#FF94A3B8"
+                                               Text="{Binding RequestedBy, StringFormat=Requested by {0}}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <DockPanel Margin="0,8,0,0" LastChildFill="False">
+                                        <Button DockPanel.Dock="Left"
+                                                Margin="0,0,6,0"
+                                                Padding="10,4"
+                                                Background="#FF7F1D1D"
+                                                Foreground="White"
+                                                Content="Remove"
+                                                Command="{Binding DataContext.Queue.RemoveCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                        <Button DockPanel.Dock="Right"
+                                                Padding="10,4"
+                                                Background="#FF2563EB"
+                                                Foreground="White"
+                                                Content="Play"
+                                                Command="{Binding DataContext.Queue.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
     </StackPanel>
 </UserControl>

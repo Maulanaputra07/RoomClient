@@ -22,6 +22,9 @@ namespace RoomClient.Views.Windows
     /// </summary>
     public partial class MainWindow : FluentWindow
     {
+        private bool _songListCollapsed;
+        private bool _queueCollapsed;
+
         [DllImport("user32.dll")]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
@@ -90,9 +93,19 @@ namespace RoomClient.Views.Windows
             base.OnClosed(e);
         }
 
-        public MainWindow()
+
+        private void SongListView_ToggleRequested(object? sender, bool collapsed)
         {
-            InitializeComponent();
+            SongListRow.Height = collapsed
+                ? new GridLength(90)
+                : new GridLength(220);
+        }
+
+        private void QueueView_ToggleRequested(object? sender, bool collapsed)
+        {
+            QueueRow.Height = collapsed
+                ? new GridLength(80)
+                : new GridLength(1, GridUnitType.Star);
         }
 
         public MainWindow(MainWindowViewModel vm)
@@ -100,6 +113,9 @@ namespace RoomClient.Views.Windows
             InitializeComponent();
 
             DataContext = vm;
+
+            SongListView.ToggleRequested += SongListView_ToggleRequested;
+            QueueView.ToggleRequested += QueueView_ToggleRequested;
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
