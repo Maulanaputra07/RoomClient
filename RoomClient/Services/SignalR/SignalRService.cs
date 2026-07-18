@@ -12,10 +12,18 @@ namespace RoomClient.Services.SignalR
         public event EventHandler? SessionExpired;
         public event EventHandler<SessionStartedPayload>? SessionStarted;
         public event EventHandler<SessionStartedPayload>? SessionExtended;
+        public event EventHandler<CurrentRoomPayload>? CurrentRoomReceived;
+
         private static readonly Uri ServerUri = new("http://100.114.192.55:3000");
         private SocketIOClient.SocketIO? _client;
+        private readonly IConfigService _configService;
 
         public bool IsConnected => _client?.Connected ?? false;
+
+        public SignalRService(IConfigService configService)
+        {
+            _configService = configService;
+        }
 
         //public SignalRService()
         //{
@@ -64,6 +72,14 @@ namespace RoomClient.Services.SignalR
                 SocketLogger.Log("LIFECYCLE", $"OnConnected fired. Id={_client!.Id}");
                 try
                 {
+                    var config = _configService.LoadCreate();
+
+                    await _client.EmitAsync("register_device", new object[] { new { device_id = config.DeviceId } });
+                    SocketLogger.Log("EMIT", $"register_device sent: {config.DeviceId}");
+
+                    await _client.EmitAsync("current_room");
+                    SocketLogger.Log("EMIT", "current_room sent");
+
                     await _client.EmitAsync("request_sync");
                     SocketLogger.Log("EMIT", "request_sync sent");
                 }
@@ -126,6 +142,19 @@ namespace RoomClient.Services.SignalR
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     SessionExtended?.Invoke(this, data);
+                });
+
+                await Task.CompletedTask;
+            });
+
+            _client.On("current_room", async ctx =>
+            {
+                var data = ctx.GetValue<CurrentRoomPayload>(0);
+                SocketLogger.LogEvent("current_room", data);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    CurrentRoomReceived?.Invoke(this, data);
                 });
 
                 await Task.CompletedTask;

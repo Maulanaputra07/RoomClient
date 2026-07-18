@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="220"
+             d:DesignHeight="180"
              d:DesignWidth="520">
     <Grid Margin="14">
         <Grid.RowDefinitions>
@@ -14,34 +14,29 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Room Status" />
-            <TextBlock Margin="0,4,0,8" FontSize="12" Foreground="#FF94A3B8" Text="Informasi ruangan Anda." />
+            <TextBlock FontSize="15" FontWeight="SemiBold" Foreground="White" Text="Room Status" />
+            <TextBlock Margin="0,2,0,8" FontSize="11" Foreground="#FF94A3B8" Text="Informasi ruangan Anda." />
         </StackPanel>
 
         <!-- Sisa waktu sesi -->
-        <Border Grid.Row="1" Margin="0,0,0,10" Padding="16" Background="#FF111827" CornerRadius="14">
+        <Border Grid.Row="1" Margin="0,0,0,8" Padding="12" Background="#FF111827" CornerRadius="14">
             <StackPanel>
-                <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="Sisa Waktu Sesi" />
-                <TextBlock Margin="0,4,0,0"
-                           FontSize="32"
+                <TextBlock FontSize="11" Foreground="#FF94A3B8" Text="Sisa Waktu Sesi" />
+                <TextBlock Margin="0,2,0,0"
+                           FontSize="26"
                            FontWeight="Bold"
                            Foreground="#FFFACC15"
                            Text="{Binding Player.RemainingTimeText, FallbackValue=--:--}" />
-                <TextBlock Margin="0,8,0,0"
-                           FontSize="13"
-                           Foreground="White"
-                           Text="{Binding Status.StatusMessage}"
-                           TextWrapping="Wrap" />
             </StackPanel>
         </Border>
 
         <!-- Room yang sedang dipakai client ini saja -->
-        <Border Grid.Row="2" Padding="12" Background="#FF111827" CornerRadius="14">
+        <Border Grid.Row="2" Padding="10" Background="#FF111827" CornerRadius="14">
             <StackPanel DataContext="{Binding Status.SelectedRoom}">
                 <DockPanel LastChildFill="False">
-                    <TextBlock FontSize="15" FontWeight="SemiBold" Foreground="White" Text="{Binding RoomNumber}" />
-                    <Border Margin="10,0,0,0" Padding="8,3" Background="#FF1D4ED8" CornerRadius="999" DockPanel.Dock="Right">
-                        <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="White" Text="{Binding RoomStatus}" />
+                    <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="{Binding RoomNumber}" />
+                    <Border Margin="10,0,0,0" Padding="7,2" Background="#FF1D4ED8" CornerRadius="999" DockPanel.Dock="Right">
+                        <TextBlock FontSize="10" FontWeight="SemiBold" Foreground="White" Text="{Binding RoomStatus}" />
                     </Border>
                 </DockPanel>
             </StackPanel>

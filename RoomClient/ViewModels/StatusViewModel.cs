@@ -89,6 +89,27 @@ namespace RoomClient.ViewModels
             }
         }
 
+        public void UpdateCurrentRoom(CurrentRoomPayload payload)
+        {
+            if (payload.RoomId is null)
+            {
+                SelectedRoom = null;
+                StatusMessage = "Belum ada room aktif untuk device ini.";
+                AddLog(StatusMessage);
+                return;
+            }
+
+            SelectedRoom = new Room
+            {
+                RoomId = payload.RoomId.Value,
+                RoomNumber = payload.RoomNumber ?? "",
+                RoomStatus = payload.RoomStatus ?? ""
+            };
+
+            StatusMessage = $"Room {SelectedRoom.RoomNumber} aktif.";
+            AddLog(StatusMessage);
+        }
+
         public void MarkWebSocketEngineReady(bool connected)
         {
             AddLog(connected

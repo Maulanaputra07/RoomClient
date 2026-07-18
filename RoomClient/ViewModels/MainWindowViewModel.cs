@@ -32,6 +32,7 @@ namespace RoomClient.ViewModels
             _signalRService.SessionStarted += OnSessionStarted;
             _signalRService.SessionExpired += OnSessionExpired;
             _signalRService.SessionExtended += OnSessionExtended;
+            _signalRService.CurrentRoomReceived += OnCurrentRoomReceived;
         }
 
         public SearchViewModel Search { get; }
@@ -68,6 +69,11 @@ namespace RoomClient.ViewModels
         private void OnSessionExtended(object? sender, SessionStartedPayload data)
         {
             Player.ExtendSession(data.EndTime);
+        }
+
+        private void OnCurrentRoomReceived(object? sender, CurrentRoomPayload data)
+        {
+            Status.UpdateCurrentRoom(data);
         }
     }
 }
