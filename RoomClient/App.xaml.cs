@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RoomClient.Core.Interfaces;
 using RoomClient.Services.Api;
+using RoomClient.Services.Configuration;
 using RoomClient.Services.Player;
 using RoomClient.Services.Queue;
 using RoomClient.Services.SignalR;
@@ -45,6 +46,10 @@ namespace RoomClient
                 services.AddSingleton<SongListViewModel>();
 
                 services.AddSingleton<StatusViewModel>();
+
+                services.AddSingleton<IConfigService, ConfigurationService>();
+
+                services.AddTransient<RegisterViewModel>();
 
                 services.AddHttpClient<IYoutubeService, YoutubeService>();
 

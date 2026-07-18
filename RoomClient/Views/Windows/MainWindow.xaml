@@ -11,33 +11,35 @@
     xmlns:search="clr-namespace:RoomClient.Views.Search"
     xmlns:songList="clr-namespace:RoomClient.Views.SongList"
     xmlns:status="clr-namespace:RoomClient.Views.Status"
+    xmlns:register="clr-namespace:RoomClient.Views.Register"
     mc:Ignorable="d"
     Title="Room Client - Karaoke Room"
     WindowStyle="None"
     WindowState="Maximized"
     ResizeMode="NoResize"
-    Topmost="True"
+    Topmost="False"
     WindowStartupLocation="CenterScreen"
     Loaded="OnLoaded"
     PreviewKeyDown="OnPreviewKeyDown">
     <Grid Background="#FF08111F" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" UseLayoutRounding="True" SnapsToDevicePixels="True">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <Grid x:Name="MainContentGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <Border
-            Grid.Row="0"
-            Margin="12,12,12,10"
-            Padding="12"
-            Background="#FF0F172A"
-            CornerRadius="16"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Top">
-            <header:HeaderView />
-        </Border>
+            <Border
+                Grid.Row="0"
+                Margin="12,12,12,10"
+                Padding="12"
+                Background="#FF0F172A"
+                CornerRadius="16"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Top">
+                <header:HeaderView />
+            </Border>
 
-        <Grid Grid.Row="1" Margin="12,0,12,12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid Grid.Row="1" Margin="12,0,12,12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
                 <RowDefinition Height="3*" />
                 <RowDefinition x:Name="SongListRow" Height="220" />
@@ -79,5 +81,8 @@
                 <queue:QueueView x:Name="QueueView"/>
             </Border>
         </Grid>
+        </Grid>
+
+        <register:RegisterView x:Name="RegisterOverlay" Visibility="Collapsed" />
     </Grid>
 </ui:FluentWindow>

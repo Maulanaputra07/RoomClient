@@ -1,4 +1,6 @@
-﻿using RoomClient.ViewModels;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RoomClient.Core.Interfaces;
+using RoomClient.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,7 +125,35 @@ namespace RoomClient.Views.Windows
             HideTaskbar();
             WindowState = WindowState.Maximized;
 
+            var configService = App.Services.GetRequiredService<IConfigService>();
+            var config = configService.LoadCreate();
+
+            if (!config.isRegistered)
+            {
+                var registerViewModel = App.Services.GetRequiredService<RegisterViewModel>();
+                registerViewModel.RegisterSucceeded += (s, args) =>
+                {
+                    RegisterOverlay.Visibility = Visibility.Collapsed;
+                    MainContentGrid.Visibility = Visibility.Visible;
+                    _ = ProceedWithMainFlowAsync();
+                };
+                RegisterOverlay.DataContext = registerViewModel;
+                RegisterOverlay.Visibility = Visibility.Visible;
+                MainContentGrid.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            await ProceedWithMainFlowAsync();
+
             if (DataContext is MainWindowViewModel viewModel)
+            {
+                await viewModel.InitializeAsync();
+            }
+        }
+
+        private async Task ProceedWithMainFlowAsync()
+        {
+            if (DataContext is ViewModels.MainWindowViewModel viewModel)
             {
                 await viewModel.InitializeAsync();
             }

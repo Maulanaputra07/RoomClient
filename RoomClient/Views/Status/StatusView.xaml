@@ -37,7 +37,7 @@
 
         <!-- Room yang sedang dipakai client ini saja -->
         <Border Grid.Row="2" Padding="12" Background="#FF111827" CornerRadius="14">
-            <StackPanel DataContext="{Binding Status.CurrentRoom}">
+            <StackPanel DataContext="{Binding Status.SelectedRoom}">
                 <DockPanel LastChildFill="False">
                     <TextBlock FontSize="15" FontWeight="SemiBold" Foreground="White" Text="{Binding RoomNumber}" />
                     <Border Margin="10,0,0,0" Padding="8,3" Background="#FF1D4ED8" CornerRadius="999" DockPanel.Dock="Right">

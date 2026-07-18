@@ -7,7 +7,7 @@ namespace RoomClient.Services.Api
 {
     public class ApiService : IApiService
     {
-        private static readonly Uri BaseUri = new("http://192.168.201.220:3000/");
+        private static readonly Uri BaseUri = new("http://100.114.192.55:3000/api/");
         private readonly HttpClient _httpClient;
 
         public ApiService()
@@ -20,7 +20,7 @@ namespace RoomClient.Services.Api
 
         public async Task<IReadOnlyList<Room>> GetRoomsAsync(CancellationToken cancellationToken = default)
         {
-            var response = await _httpClient.GetFromJsonAsync<RoomsResponse>("api/rooms", cancellationToken);
+            var response = await _httpClient.GetFromJsonAsync<RoomsResponse>("rooms", cancellationToken);
 
             if (response?.Data is null)
             {
@@ -28,6 +28,27 @@ namespace RoomClient.Services.Api
             }
 
             return response.Data;
+        }
+
+        public async Task<bool> RegisterClientAsync(RegisterClientRequest request)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("devices/register", request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    throw new InvalidOperationException(
+                        $"Server menolak registrasi ({(int)response.StatusCode} {response.StatusCode}): {errorBody}");
+                }
+
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new InvalidOperationException($"Gagal menghubungi server: {ex.Message}", ex);
+            }
         }
 
         private sealed class RoomsResponse

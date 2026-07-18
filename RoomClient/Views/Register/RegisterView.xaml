@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="RoomClient.Views.Register.RegisterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:helpers="clr-namespace:RoomClient.Helpers"
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+             d:DesignWidth="500">
+    <UserControl.Resources>
+        <helpers:InverseBoolConverter x:Key="InverseBoolConverter" />
+    </UserControl.Resources>
+    <Grid Background="#FF08111F">
+        <Border Width="420"
+                Padding="28"
+                Background="#FF0F172A"
+                CornerRadius="18"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock FontSize="20" FontWeight="Bold" Foreground="White" Text="Registrasi Client" />
+                <TextBlock Margin="0,6,0,20" FontSize="12" Foreground="#FF94A3B8" Text="Daftarkan device ini sebelum digunakan." TextWrapping="Wrap" />
+
+                <TextBlock Margin="0,0,0,4" FontSize="12" Foreground="#FF94A3B8" Text="Host Name" />
+                <TextBox Height="36" Padding="10,6" Background="#FF111827" Foreground="White" BorderBrush="#FF334155"
+                         Text="{Binding HostName, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Margin="0,14,0,4" FontSize="12" Foreground="#FF94A3B8" Text="Client IP" />
+                <TextBox Height="36" Padding="10,6" Background="#FF111827" Foreground="White" BorderBrush="#FF334155"
+                         Text="{Binding ClientIp, UpdateSourceTrigger=PropertyChanged}" />
+
+                <Button Margin="0,20,0,0"
+                        Height="40"
+                        Background="#FF2563EB"
+                        Foreground="White"
+                        Content="Daftar"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
+                        Command="{Binding RegisterCommand}" />
+
+                <TextBlock Margin="0,12,0,0" FontSize="12" Foreground="#FFF87171" Text="{Binding StatusMessage}" TextWrapping="Wrap" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
