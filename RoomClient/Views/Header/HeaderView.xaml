@@ -51,12 +51,6 @@
                            FontWeight="Medium"
                            Foreground="White"
                            Text="{Binding Player.IsSessionActive, Converter={StaticResource StatusTextConverter}}" />
-                <TextBlock Margin="10,0,0,0"
-                   FontSize="13"
-                   FontWeight="Bold"
-                   Foreground="#FFFACC15"
-                   Text="{Binding Player.RemainingTimeText}"
-                   Visibility="{Binding Player.IsSessionActive, Converter={StaticResource BoolToVisibilityConverter}}" />
             </StackPanel>
         </Border>
     </Grid>

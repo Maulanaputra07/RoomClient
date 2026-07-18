@@ -98,16 +98,14 @@ namespace RoomClient.Views.Windows
 
         private void SongListView_ToggleRequested(object? sender, bool collapsed)
         {
-            SongListRow.Height = collapsed
-                ? new GridLength(90)
-                : new GridLength(220);
+            SongListView.ContentGridControl.Visibility =
+                collapsed ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void QueueView_ToggleRequested(object? sender, bool collapsed)
         {
-            QueueRow.Height = collapsed
-                ? new GridLength(80)
-                : new GridLength(1, GridUnitType.Star);
+            QueueView.ContentGridControl.Visibility =
+                collapsed ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public MainWindow(MainWindowViewModel vm)

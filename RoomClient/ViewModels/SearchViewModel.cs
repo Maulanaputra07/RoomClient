@@ -54,8 +54,21 @@ namespace RoomClient.ViewModels
         [RelayCommand]
         private async Task SearchAsync()
         {
+            if (Player is null || !Player.IsSessionActive)
+            {
+                StatusMessage = "Sesi belum dimulai — tidak dapat mencari lagu.";
+                Results.Clear();
+                return;
+            }
+
             if (IsBusy)
             {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                StatusMessage = "Masukkan kata kunci pencarian.";
                 return;
             }
 
@@ -67,6 +80,7 @@ namespace RoomClient.ViewModels
                 var results = await _youtubeService.SearchAsync(SearchQuery);
 
                 Results.Clear();
+
                 foreach (var song in results)
                 {
                     Results.Add(song);
@@ -83,24 +97,6 @@ namespace RoomClient.ViewModels
             finally
             {
                 IsBusy = false;
-            }
-        }
-
-        [RelayCommand]
-        private async Task TestBrunoMarsAsync()
-        {
-            await SearchAsync();
-
-            if (Results.Count > 0 && Player is not null)
-            {
-                if (!Player.IsSessionActive)
-                {
-                    StatusMessage = "Sesi belum dimulai — tidak bisa memutar lagu.";
-                    return;
-                }
-
-                Player.PlayAsync(Results[0]);
-                StatusMessage = $"Playing {Results[0].Title} in WebView2.";
             }
         }
     }

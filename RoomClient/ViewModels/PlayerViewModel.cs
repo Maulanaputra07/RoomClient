@@ -89,6 +89,8 @@ namespace RoomClient.ViewModels
             {
                 RemainingTimeText = "00:00";
                 _countdownTimer?.Stop();
+                IsSessionActive = false;
+                NowPlaying = "Sesi telah berakhir";
                 return;
             }
 
