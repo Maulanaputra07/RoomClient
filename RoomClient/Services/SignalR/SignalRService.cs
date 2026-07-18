@@ -154,7 +154,7 @@ namespace RoomClient.Services.SignalR
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    CurrentRoomReceived?.Invoke(this, data);
+                    CurrentRoomReceived?.Invoke(this, data ?? new CurrentRoomPayload());
                 });
 
                 await Task.CompletedTask;

@@ -93,7 +93,7 @@ namespace RoomClient.ViewModels
         {
             if (payload.RoomId is null)
             {
-                SelectedRoom = null;
+                SelectedRoom = new Room();
                 StatusMessage = "Belum ada room aktif untuk device ini.";
                 AddLog(StatusMessage);
                 return;

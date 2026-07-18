@@ -144,11 +144,6 @@ namespace RoomClient.Views.Windows
             }
 
             await ProceedWithMainFlowAsync();
-
-            if (DataContext is MainWindowViewModel viewModel)
-            {
-                await viewModel.InitializeAsync();
-            }
         }
 
         private async Task ProceedWithMainFlowAsync()
