@@ -7,7 +7,7 @@ namespace RoomClient.Services.Api
 {
     public class ApiService : IApiService
     {
-        private static readonly Uri BaseUri = new("http://100.114.192.55:3000/api/");
+        private static readonly Uri BaseUri = new("http://192.168.1.9:3000/api/");
         private readonly HttpClient _httpClient;
 
         public ApiService()

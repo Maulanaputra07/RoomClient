@@ -14,7 +14,7 @@ namespace RoomClient.Services.SignalR
         public event EventHandler<SessionStartedPayload>? SessionExtended;
         public event EventHandler<CurrentRoomPayload>? CurrentRoomReceived;
 
-        private static readonly Uri ServerUri = new("http://100.114.192.55:3000");
+        private static readonly Uri ServerUri = new("http://192.168.1.9:3000");
         private SocketIOClient.SocketIO? _client;
         private readonly IConfigService _configService;
 
