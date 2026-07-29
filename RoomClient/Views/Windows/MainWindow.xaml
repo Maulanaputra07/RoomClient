@@ -62,11 +62,12 @@
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0"
+                    <Border x:Name="PlayerContainer"
+                            Grid.Column="0"
                             Margin="0,0,10,0"
                             Background="#FF0F172A"
                             CornerRadius="16">
-                        <player:PlayerView/>
+                        <player:PlayerView x:Name="PlayerViewControl"/>
                     </Border>
 
                     <Grid Grid.Column="1">
@@ -130,6 +131,12 @@
             </Grid>
 
         </Grid>
+
+        <Border x:Name="PlayerFullScreenHost"
+                Background="#FF08111F"
+                Visibility="Collapsed"
+                Panel.ZIndex="50"
+                />
 
         <!-- Register Overlay -->
         <register:RegisterView

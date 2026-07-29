@@ -5,7 +5,7 @@ using System.Windows.Threading;
 
 namespace RoomClient.ViewModels
 {
-    public class PlayerViewModel : ObservableObject
+    public partial class PlayerViewModel : ObservableObject
     {
         private readonly IYoutubeService _youtubeService;
         private string _nowPlaying = "waiting";
@@ -15,6 +15,14 @@ namespace RoomClient.ViewModels
 
         private DateTimeOffset? _sessionEndTime;
         private DispatcherTimer? _countdownTimer;
+
+        private bool _isFullScreen;
+
+        public bool IsFullScreen
+        {
+            get => _isFullScreen;
+            set => SetProperty(ref _isFullScreen, value);
+        }
 
         public PlayerViewModel(IYoutubeService youtubeService)
         {

@@ -16,6 +16,7 @@ namespace RoomClient.Views.Player
         public PlayerView()
         {
             InitializeComponent();
+
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
             DataContextChanged += OnDataContextChanged;
@@ -96,6 +97,10 @@ namespace RoomClient.Views.Player
 
         private async Task EnsureWebViewAsync()
         {
+            // Log TANPA SYARAT di paling awal — kalau baris ini saja tidak muncul di log,
+            // berarti method ini memang tidak pernah dipanggil sama sekali dari caller-nya.
+            LogWebViewIssue($"EnsureWebViewAsync called. _webViewInitialized={_webViewInitialized}");
+
             if (_webViewInitialized)
             {
                 return;
@@ -120,8 +125,18 @@ namespace RoomClient.Views.Player
 
                 if (PlayerWebView.CoreWebView2 is null)
                 {
+                    // Jalur ini SEBELUMNYA tidak di-log sama sekali — inilah kenapa
+                    // webview2-error.log tidak muncul di beberapa laptop meskipun
+                    // WebView2 gagal init. EnsureCoreWebView2Async bisa "berhasil"
+                    // (tidak throw) tapi CoreWebView2 tetap null di beberapa environment.
+                    LogWebViewIssue("CoreWebView2 is null setelah EnsureCoreWebView2Async " +
+                        "(tidak ada exception, tapi init gagal secara silent)");
                     return;
                 }
+
+                // Log versi runtime yang benar-benar dipakai — berguna untuk
+                // membandingkan versi WebView2 antar laptop yang bermasalah vs tidak.
+                LogWebViewIssue($"WebView2 initialized OK. Runtime version: {environment.BrowserVersionString}");
 
                 _player ??= new WebViewPlayer(PlayerWebView);
                 _webViewInitialized = true;
@@ -129,25 +144,25 @@ namespace RoomClient.Views.Player
             catch (Exception ex)
             {
                 _webViewInitialized = false;
+                LogWebViewIssue($"Exception: {ex}");
+            }
+        }
 
-                // JANGAN biarkan catch block kosong — minimal log ke file/debug output
-                // supaya kalau gagal lagi di PC lain, kamu tahu penyebabnya (missing runtime,
-                // access denied, dsb) alih-alih cuma lihat blank window tanpa petunjuk.
-                System.Diagnostics.Debug.WriteLine($"WebView2 init failed: {ex}");
-
-                // Opsional: tulis ke file log supaya bisa dicek user non-developer juga
-                try
-                {
-                    var logPath = System.IO.Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "RoomClient", "webview2-error.log");
-                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
-                    System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] {ex}\n\n");
-                }
-                catch
-                {
-                    // Kalau logging pun gagal, biarkan saja — jangan sampai crash di sini
-                }
+        // Helper terpusat supaya semua jalur (exception maupun silent-null) pasti ke-log.
+        private static void LogWebViewIssue(string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"WebView2 issue: {message}");
+            try
+            {
+                var logPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "RoomClient", "webview2-error.log");
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
+                System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] {message}\n\n");
+            }
+            catch
+            {
+                // Kalau logging pun gagal, tidak ada lagi yang bisa dilakukan di sini
             }
         }
     }

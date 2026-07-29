@@ -27,6 +27,8 @@ namespace RoomClient.Views.Windows
         private bool _songListCollapsed;
         private bool _queueCollapsed;
 
+        private bool _isPlayerFullScreen;
+
         [DllImport("user32.dll")]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
@@ -40,6 +42,17 @@ namespace RoomClient.Views.Windows
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
+
+            if (e.Key == Key.Escape && _isPlayerFullScreen)
+            {
+                e.Handled = true;
+                if (DataContext is MainWindowViewModel vm)
+                {
+                    vm.Player.IsFullScreen = false; // ini akan trigger PropertyChanged -> SetPlayerFullScreen(false) otomatis
+                }
+                return;
+            }
+
             // Blokir Alt+F4
             if (e.SystemKey == Key.F4 && (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt)
             {
@@ -95,6 +108,27 @@ namespace RoomClient.Views.Windows
             base.OnClosed(e);
         }
 
+        public void SetPlayerFullScreen(bool fullScreen)
+        {
+            if (fullScreen == _isPlayerFullScreen) return;
+            _isPlayerFullScreen = fullScreen;
+
+            if (fullScreen)
+            {
+                PlayerContainer.Child = null;
+                PlayerFullScreenHost.Child = PlayerViewControl;
+                PlayerFullScreenHost.Visibility = Visibility.Visible;
+
+                MainContentGrid.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                PlayerFullScreenHost.Child = null;
+                PlayerFullScreenHost.Visibility = Visibility.Collapsed;
+                PlayerContainer.Child = PlayerViewControl;
+                MainContentGrid.Visibility = Visibility.Visible;
+            }
+        }
 
         private void SongListView_ToggleRequested(object? sender, bool collapsed)
         {
@@ -125,6 +159,15 @@ namespace RoomClient.Views.Windows
 
             var configService = App.Services.GetRequiredService<IConfigService>();
             var config = configService.LoadCreate();
+
+            if (DataContext is MainWindowViewModel vm && vm.Player is not null)
+            {
+                vm.Player.PropertyChanged += (s, args) =>
+                {
+                    if (args.PropertyName == nameof(PlayerViewModel.IsFullScreen))
+                        SetPlayerFullScreen(vm.Player.IsFullScreen);
+                };
+            }
 
             if (!config.isRegistered)
             {

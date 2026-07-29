@@ -99,5 +99,12 @@ namespace RoomClient.ViewModels
                 IsBusy = false;
             }
         }
+
+        [RelayCommand]
+        private void ToggleFullScreen()
+        {
+            if (Player is null) return;
+            Player.IsFullScreen = !Player.IsFullScreen;
+        }
     }
 }

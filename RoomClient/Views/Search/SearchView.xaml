@@ -23,7 +23,9 @@
 
         <WrapPanel Margin="0,8,0,0">
             <Button Margin="0,0,8,8" Padding="12,6" Background="#FF111827" Foreground="White" Content="Search" Command="{Binding Search.SearchCommand}" />
+            <Button Margin="0,0,8,8" Padding="12,6" Background="#FF7C3AED" Foreground="White" Content="Test Fullscreen" Command="{Binding Search.ToggleFullScreenCommand}" />
         </WrapPanel>
+
 
         <TextBlock Margin="0,2,0,0" FontSize="11" Foreground="#FF94A3B8" Text="{Binding Search.StatusMessage}" TextWrapping="Wrap" />
     </StackPanel>
