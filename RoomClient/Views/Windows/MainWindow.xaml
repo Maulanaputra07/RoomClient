@@ -107,7 +107,7 @@
                                         Orientation="Horizontal">
 
                                 <ToggleButton x:Name="SongListTabButton"
-                                              Content="Song List"
+                                              Content="Hasil Pencarian"
                                               IsChecked="True"
                                               Padding="12,6"
                                               Margin="0,0,6,0"
@@ -117,7 +117,7 @@
                                               Click="SongListTabButton_Click"/>
 
                                 <ToggleButton x:Name="QueueTabButton"
-                                              Content="Queue"
+                                              Content="Antrian"
                                               IsChecked="False"
                                               Padding="12,6"
                                               Background="Transparent"
@@ -250,7 +250,7 @@
                 <StackPanel VerticalAlignment="Center"
                             MaxWidth="220"
                             Margin="0,0,20,0">
-                    <TextBlock Text="Now Playing"
+                    <TextBlock Text="Sedang Memutar"
                                FontSize="11"
                                Foreground="#FF94A3B8"/>
                     <TextBlock Text="{Binding Player.NowPlaying}"

@@ -1,4 +1,5 @@
-﻿using RoomClient.Core.Interfaces;
+﻿using RoomClient.Config;
+using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
 using RoomClient.Services.Logging;
 using SocketIOClient;
@@ -14,7 +15,7 @@ namespace RoomClient.Services.SignalR
         public event EventHandler<SessionStartedPayload>? SessionExtended;
         public event EventHandler<CurrentRoomPayload>? CurrentRoomReceived;
 
-        private static readonly Uri ServerUri = new("http://192.168.1.9:3000");
+        private readonly Uri _serverUri;
         private SocketIOClient.SocketIO? _client;
         private readonly IConfigService _configService;
 
@@ -23,18 +24,14 @@ namespace RoomClient.Services.SignalR
         public SignalRService(IConfigService configService)
         {
             _configService = configService;
+            _serverUri = new Uri(ConfigurationProvider.ApiSettings.WebSocket);
         }
-
-        //public SignalRService()
-        //{
-        //    _socket = new SocketIO(ServerUri);
-        //}
 
         public async Task<bool> ConnectAsync(CancellationToken cancellationToken = default)
         {
             if (IsConnected) return true;
 
-            _client = new SocketIOClient.SocketIO(ServerUri, new SocketIOOptions
+            _client = new SocketIOClient.SocketIO(_serverUri, new SocketIOOptions
             {
                 Transport = TransportProtocol.WebSocket,
                 Reconnection = true,
@@ -46,7 +43,7 @@ namespace RoomClient.Services.SignalR
 
             try
             {
-                SocketLogger.Log("CONNECT", $"Attempting connect to {ServerUri}...");
+                SocketLogger.Log("CONNECT", $"Attempting connect to {_serverUri}...");
                 await _client.ConnectAsync(cancellationToken);
                 SocketLogger.Log("CONNECT", $"Connected. SocketId={_client.Id}");
                 return true;

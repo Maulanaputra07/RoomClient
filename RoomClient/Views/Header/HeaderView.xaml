@@ -7,20 +7,23 @@
              mc:Ignorable="d"
              d:DesignHeight="120"
              d:DesignWidth="1200">
-
     <UserControl.Resources>
         <helpers:BoolToSessionStatusTextConverter x:Key="StatusTextConverter" />
         <helpers:BoolToSessionStatusBrushConverter x:Key="StatusBrushConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </UserControl.Resources>
-
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+
+        <!-- Logo & Title -->
+        <StackPanel Grid.Column="0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    Margin="20,0,0,0">
             <Border Width="48" Height="48" Background="#FF2563EB" CornerRadius="14">
                 <TextBlock
                     HorizontalAlignment="Center"
@@ -35,6 +38,54 @@
                 <TextBlock FontSize="13" Foreground="#FF94A3B8" Text="Karaoke room control panel" />
             </StackPanel>
         </StackPanel>
+
+        <!-- Search (pindahan dari SearchView) -->
+        <StackPanel Grid.Column="1"
+                    VerticalAlignment="Center"
+                    MaxWidth="480"
+                    Margin="24,0">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Height="38"
+                         Padding="14,8"
+                         Background="#FF111827"
+                         Foreground="White"
+                         BorderBrush="#FF334155"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding Search.SearchQuery, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Return" Command="{Binding Search.SearchCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+
+                <Button Grid.Column="1"
+                        Margin="8,0,0,0"
+                        Padding="16,8"
+                        Height="38"
+                        Background="#FF7C3AED"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Content="Cari"
+                        Command="{Binding Search.SearchCommand}" />
+            </Grid>
+
+            <!--
+            <TextBlock Margin="4,4,4,0"
+                       FontSize="11"
+                       Foreground="#FF94A3B8"
+                       TextWrapping="Wrap"
+                       Text="{Binding Search.StatusMessage}" />
+            -->
+            
+        </StackPanel>
+
+        <!-- Session Status -->
         <Border Grid.Column="2"
                 Margin="0,0,20,0"
                 Padding="12,6"

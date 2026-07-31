@@ -1,4 +1,5 @@
-﻿using RoomClient.Core.Interfaces;
+﻿using RoomClient.Config;
+using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,11 @@ namespace RoomClient.Services.Youtube
     public class YoutubeService : IYoutubeService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "http://192.168.1.9:8000";
 
         public YoutubeService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri(ConfigurationProvider.ApiSettings.YoutubeAPI);
         }
 
         public async Task<List<Song>> SearchAsync(string keyword)
@@ -25,7 +26,7 @@ namespace RoomClient.Services.Youtube
             {
                 return [];
             }
-            var url = $"{BaseUrl}/youtube/search?q={Uri.EscapeDataString(keyword.Trim())}";
+            var url = $"/youtube/search?q={Uri.EscapeDataString(keyword.Trim())}";
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<YoutubeSearchResponse>(url);
@@ -58,7 +59,7 @@ namespace RoomClient.Services.Youtube
                 return null;
             }
 
-            var url = $"{BaseUrl}/youtube/stream/{Uri.EscapeDataString(videoId)}";
+            var url = $"/youtube/stream/{Uri.EscapeDataString(videoId)}";
 
             try
             {
