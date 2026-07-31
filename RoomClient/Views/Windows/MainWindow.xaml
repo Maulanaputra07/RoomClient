@@ -44,89 +44,133 @@
                 <header:HeaderView/>
             </Border>
 
-            <!-- Main Content -->
+            <!-- Main Content: Player (kiri) + Sidebar tab SongList/Queue (kanan, bisa ditutup) -->
             <Grid Grid.Row="1"
                   Margin="12,0,12,12">
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="3*"/>
-                    <RowDefinition Height="1.25*"/>
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition x:Name="SidebarColumnDefinition" Width="300"/>
+                </Grid.ColumnDefinitions>
 
-                <!-- Player + Status/Search -->
-                <Grid Grid.Row="0"
-                      Margin="0,0,0,10">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Player (full width & height, kolom kiri) -->
+                <Grid Grid.Column="0"
+                      Margin="0,0,10,90">
 
                     <Border x:Name="PlayerContainer"
-                            Grid.Column="0"
-                            Margin="0,0,10,0"
                             Background="#FF0F172A"
                             CornerRadius="16">
                         <player:PlayerView x:Name="PlayerViewControl"/>
                     </Border>
 
-                    <Grid Grid.Column="1">
+                    <!-- Tombol buka kembali sidebar, muncul saat sidebar ditutup -->
+                    <Button x:Name="OpenSidebarButton"
+                            Content="&#xE8A0;"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Width="36" Height="36"
+                            Padding="0"
+                            Background="#E60F172A"
+                            Foreground="White"
+                            BorderThickness="0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="0,16,16,0"
+                            Visibility="Collapsed"
+                            Click="OpenSidebarButton_Click"
+                            ToolTip="Tampilkan song list &amp; queue"/>
+
+                </Grid>
+
+                <!-- Sidebar: SongList / Queue dalam satu panel dengan toggle -->
+                <Border x:Name="SidebarContainer"
+                        Grid.Column="1"
+                        Background="#FF0F172A"
+                        CornerRadius="16">
+
+                    <Grid>
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Border Grid.Row="0"
-                                Margin="0,0,0,10"
-                                Padding="12"
-                                Background="#FF0F172A"
-                                CornerRadius="16">
-                            <status:StatusView/>
-                        </Border>
+                        <!-- Toggle SongList/Queue + tombol Close -->
+                        <Grid Grid.Row="0" Margin="10,10,10,8">
 
-                        <Border Grid.Row="1"
-                                Background="#FF0F172A"
-                                CornerRadius="16">
-                            <search:SearchView/>
-                        </Border>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0"
+                                        Orientation="Horizontal">
+
+                                <ToggleButton x:Name="SongListTabButton"
+                                              Content="Song List"
+                                              IsChecked="True"
+                                              Padding="12,6"
+                                              Margin="0,0,6,0"
+                                              Background="#FF1E293B"
+                                              Foreground="White"
+                                              BorderThickness="0"
+                                              Click="SongListTabButton_Click"/>
+
+                                <ToggleButton x:Name="QueueTabButton"
+                                              Content="Queue"
+                                              IsChecked="False"
+                                              Padding="12,6"
+                                              Background="Transparent"
+                                              Foreground="White"
+                                              BorderThickness="0"
+                                              Click="QueueTabButton_Click"/>
+
+                            </StackPanel>
+
+                            <Button x:Name="CloseSidebarButton"
+                                    Grid.Column="1"
+                                    Content="&#xE8BB;"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="12"
+                                    Width="28" Height="28"
+                                    Padding="0"
+                                    Background="Transparent"
+                                    Foreground="#FF94A3B8"
+                                    BorderThickness="0"
+                                    Click="CloseSidebarButton_Click"
+                                    ToolTip="Sembunyikan panel, webview fullscreen"/>
+
+                        </Grid>
+
+                        <!-- Konten: hanya salah satu yang Visible sesuai tab aktif -->
+                        <Grid Grid.Row="1" Margin="0,0,0,10">
+
+                            <songList:SongListView
+                                x:Name="SongListView"
+                                Visibility="Visible"/>
+
+                            <queue:QueueView
+                                x:Name="QueueView"
+                                Visibility="Collapsed"/>
+
+                        </Grid>
 
                     </Grid>
 
-                </Grid>
+                </Border>
 
-                <!-- Song List + Queue -->
-                <Grid Grid.Row="1">
+                <!--
+                StatusView dan SearchView disembunyikan sementara.
+                Kalau mau dikembalikan, tinggal buka komentar blok di bawah
+                dan sesuaikan lagi struktur kolom/row-nya.
 
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.5*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Song List -->
-                    <Border x:Name="SongListContainer"
-                            Grid.Column="0"
-                            Margin="0,0,10,0"
-                            Background="#FF0F172A"
-                            CornerRadius="16">
-
-                        <songList:SongListView
-                            x:Name="SongListView"/>
-
-                    </Border>
-
-                    <!-- Queue -->
-                    <Border x:Name="QueueContainer"
-                            Grid.Column="1"
-                            Background="#FF0F172A"
-                            CornerRadius="16">
-
-                        <queue:QueueView
-                            x:Name="QueueView"/>
-
-                    </Border>
-
-                </Grid>
+                <Border Padding="12" Background="#FF0F172A" CornerRadius="16">
+                    <status:StatusView/>
+                </Border>
+                <Border Background="#FF0F172A" CornerRadius="16">
+                    <search:SearchView/>
+                </Border>
+                -->
 
             </Grid>
 
@@ -136,7 +180,153 @@
                 Background="#FF08111F"
                 Visibility="Collapsed"
                 Panel.ZIndex="50"
-                />
+                MouseMove="PlayerFullScreenHost_MouseMove">
+            <Grid>
+                <!-- WebView2 di-reparent ke sini saat fullscreen -->
+                <ContentControl x:Name="PlayerFullScreenContent"/>
+
+                <!-- Floating "Now Playing" bar, muncul saat mouse bergerak -->
+                <Border x:Name="NowPlayingOverlay"
+                        VerticalAlignment="Bottom"
+                        Margin="32"
+                        Padding="20,14"
+                        Background="#E60F172A"
+                        CornerRadius="16"
+                        Opacity="0"
+                        IsHitTestVisible="False">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="Black" Opacity="0.4"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="Now Playing" FontSize="11" Foreground="#FF94A3B8"/>
+                            <TextBlock Text="{Binding Player.NowPlaying}"
+                                       FontSize="16" FontWeight="SemiBold"
+                                       Foreground="White"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxWidth="360"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                    VerticalAlignment="Center" Margin="24,0,0,0">
+                            <Button x:Name="PrevButton" Content="⏮"
+                                    Width="40" Height="40" Margin="0,0,8,0"
+                                    Command="{Binding Player.PreviousCommand}"/>
+                            <Button x:Name="PlayPauseButton" Content="⏸"
+                                    Width="48" Height="48" Margin="0,0,8,0"
+                                    Command="{Binding Player.PlayPauseCommand}"/>
+                            <Button x:Name="NextButton" Content="⏭"
+                                    Width="40" Height="40" Margin="0,0,8,0"
+                                    Command="{Binding Player.NextCommand}"/>
+                            <Button x:Name="ExitFullScreenButton" Content="Exit"
+                                    Padding="12,8" Margin="16,0,0,0"
+                                    Click="ExitFullScreenButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Floating Bottom Player Bar: current song + prev/pause/next + fullscreen CTA -->
+        <Border x:Name="BottomPlayerBar"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,28"
+                Padding="20,12"
+                Background="#E60F172A"
+                CornerRadius="16"
+                Panel.ZIndex="40">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="Black" Opacity="0.35"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal">
+
+                <!-- Current Song -->
+                <StackPanel VerticalAlignment="Center"
+                            MaxWidth="220"
+                            Margin="0,0,20,0">
+                    <TextBlock Text="Now Playing"
+                               FontSize="11"
+                               Foreground="#FF94A3B8"/>
+                    <TextBlock Text="{Binding Player.NowPlaying}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="White"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <!-- Transport Controls: dibind langsung ke ICommand di PlayerViewModel -->
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,20,0">
+                    <Button x:Name="BottomBarPrevButton"
+                            Content="&#xE892;"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Width="36" Height="36"
+                            Margin="0,0,6,0"
+                            Padding="0"
+                            Background="Transparent"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Command="{Binding Player.PreviousCommand}"
+                            ToolTip="Previous"/>
+                    <Button x:Name="BottomBarPlayPauseButton"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="16"
+                            Width="44" Height="44"
+                            Margin="0,0,6,0"
+                            Padding="0"
+                            Background="#FF1E293B"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Command="{Binding Player.PlayPauseCommand}"
+                            ToolTip="Play/Pause">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Content" Value="&#xE768;"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Player.IsPlaying}" Value="True">
+                                        <Setter Property="Content" Value="&#xE769;"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button x:Name="BottomBarNextButton"
+                            Content="&#xE893;"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Width="36" Height="36"
+                            Padding="0"
+                            Background="Transparent"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Command="{Binding Player.NextCommand}"
+                            ToolTip="Next"/>
+                </StackPanel>
+
+                <!-- Fullscreen CTA: tetap lewat code-behind, konsisten dgn ExitFullScreenButton -->
+                <Button x:Name="BottomBarFullScreenButton"
+                        Content="&#xE740;"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="14"
+                        Width="36" Height="36"
+                        Padding="0"
+                        Background="Transparent"
+                        Foreground="White"
+                        BorderThickness="0"
+                        VerticalAlignment="Center"
+                        Click="BottomBarFullScreenButton_Click"
+                        ToolTip="Fullscreen webview"/>
+
+            </StackPanel>
+        </Border>
 
         <!-- Register Overlay -->
         <register:RegisterView

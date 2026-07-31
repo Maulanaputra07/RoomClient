@@ -13,8 +13,10 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Wpf.Ui.Controls;
 
 namespace RoomClient.Views.Windows
@@ -39,6 +41,8 @@ namespace RoomClient.Views.Windows
         private const int SW_SHOW = 5;
 
         private int _exitSequenceStep = 0;
+
+        private DispatcherTimer? _overlayHideTimer;
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -116,17 +120,95 @@ namespace RoomClient.Views.Windows
             if (fullScreen)
             {
                 PlayerContainer.Child = null;
-                PlayerFullScreenHost.Child = PlayerViewControl;
+                PlayerFullScreenContent.Content = PlayerViewControl;
                 PlayerFullScreenHost.Visibility = Visibility.Visible;
-
                 MainContentGrid.Visibility = Visibility.Collapsed;
+                ShowNowPlayingOverlay();
             }
             else
             {
-                PlayerFullScreenHost.Child = null;
-                PlayerFullScreenHost.Visibility = Visibility.Collapsed;
+                PlayerFullScreenContent.Content = null;
                 PlayerContainer.Child = PlayerViewControl;
+                PlayerFullScreenHost.Visibility = Visibility.Collapsed;
                 MainContentGrid.Visibility = Visibility.Visible;
+                _overlayHideTimer?.Stop();
+            }
+        }
+
+        private void PlayerFullScreenHost_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+            ShowNowPlayingOverlay();
+        }
+
+        private void ExitFullScreenButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.Player.IsFullScreen = false;
+            }
+        }
+
+        private void ShowNowPlayingOverlay()
+        {
+            NowPlayingOverlay.IsHitTestVisible = true;
+            NowPlayingOverlay.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, TimeSpan.FromMilliseconds(150)));
+
+            _overlayHideTimer?.Stop();
+            _overlayHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+            _overlayHideTimer.Tick += (s, e) =>
+            {
+                _overlayHideTimer!.Stop();
+                NowPlayingOverlay.BeginAnimation(UIElement.OpacityProperty,
+                    new DoubleAnimation(0, TimeSpan.FromMilliseconds(300)));
+                NowPlayingOverlay.IsHitTestVisible = false;
+            };
+            _overlayHideTimer.Start();
+        }
+
+        private void SongListTabButton_Click(object sender, RoutedEventArgs e)
+        {
+            SongListView.Visibility = Visibility.Visible;
+            QueueView.Visibility = Visibility.Collapsed;
+            SongListTabButton.IsChecked = true;
+            QueueTabButton.IsChecked = false;
+            SongListTabButton.Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x29, 0x3B));
+            QueueTabButton.Background = Brushes.Transparent;
+        }
+
+        private void QueueTabButton_Click(object sender, RoutedEventArgs e)
+        {
+            SongListView.Visibility = Visibility.Collapsed;
+            QueueView.Visibility = Visibility.Visible;
+            QueueTabButton.IsChecked = true;
+            SongListTabButton.IsChecked = false;
+            QueueTabButton.Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x29, 0x3B));
+            SongListTabButton.Background = Brushes.Transparent;
+        }
+
+        private void CloseSidebarButton_Click(object sender, RoutedEventArgs e)
+        {
+            SidebarContainer.Visibility = Visibility.Collapsed;
+            SidebarColumnDefinition.Width = new GridLength(0);
+            OpenSidebarButton.Visibility = Visibility.Visible;
+        }
+
+        private void OpenSidebarButton_Click(object sender, RoutedEventArgs e)
+        {
+            SidebarContainer.Visibility = Visibility.Visible;
+            SidebarColumnDefinition.Width = new GridLength(300);
+            OpenSidebarButton.Visibility = Visibility.Collapsed;
+        }
+
+        private bool _isPlaying = true;
+
+
+        private void BottomBarFullScreenButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.Player.IsFullScreen = true;
             }
         }
 
