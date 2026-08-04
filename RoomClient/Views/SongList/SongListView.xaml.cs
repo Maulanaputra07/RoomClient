@@ -10,7 +10,7 @@ namespace RoomClient.Views.SongList
     public partial class SongListView : UserControl
     {
         public Grid ContentGridControl => ContentGrid;
-        public Button ToggleButtonControl => ToggleButton;
+        //public Button ToggleButtonControl => ToggleButton;
 
         private bool _isCollapsed;
         private ObservableCollection<Song>? _observedResults;
@@ -20,7 +20,7 @@ namespace RoomClient.Views.SongList
         public SongListView()
         {
             InitializeComponent();
-            ToggleButton.Content = "▲ Hide";
+            //ToggleButton.Content = "▲ Hide";
 
             DataContextChanged += OnDataContextChanged;
         }
@@ -63,14 +63,14 @@ namespace RoomClient.Views.SongList
         {
             _isCollapsed = count == 0;
             ContentGrid.Visibility = _isCollapsed ? Visibility.Collapsed : Visibility.Visible;
-            ToggleButton.Content = _isCollapsed ? "▼ Show" : "▲ Hide";
+            //ToggleButton.Content = _isCollapsed ? "▼ Show" : "▲ Hide";
         }
 
         private void OnToggleClick(object sender, RoutedEventArgs e)
         {
             _isCollapsed = !_isCollapsed;
             ContentGrid.Visibility = _isCollapsed ? Visibility.Collapsed : Visibility.Visible;
-            ToggleButton.Content = _isCollapsed ? "▼ Show" : "▲ Hide";
+            //ToggleButton.Content = _isCollapsed ? "▼ Show" : "▲ Hide";
             ToggleRequested?.Invoke(this, _isCollapsed);
         }
     }

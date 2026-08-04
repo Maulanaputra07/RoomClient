@@ -10,22 +10,43 @@
         <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Search" />
         <TextBlock Margin="0,4,0,10" FontSize="12" Foreground="#FF94A3B8" Text="Test lokal cari lagu lalu mainkan di WebView2." />
 
-        <TextBox Height="34"
-                 Padding="12,6"
-                 Background="#FF111827"
-                 Foreground="White"
-                 BorderBrush="#FF334155"
-                 Text="{Binding Search.SearchQuery, UpdateSourceTrigger=PropertyChanged}">
-            <TextBox.InputBindings>
-                <KeyBinding Key="Return" Command="{Binding Search.SearchCommand}" />
-            </TextBox.InputBindings>
-        </TextBox>
+        <!-- Input Group: Text & Voice -->
+        <Grid Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        <WrapPanel Margin="0,8,0,0">
+            <TextBox Grid.Column="0"
+                     Height="34"
+                     Padding="12,6"
+                     Background="#FF111827"
+                     Foreground="White"
+                     BorderBrush="#FF334155"
+                     Text="{Binding Search.SearchQuery, UpdateSourceTrigger=PropertyChanged}">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Return" Command="{Binding Search.SearchCommand}" />
+                </TextBox.InputBindings>
+            </TextBox>
+
+            <!-- Voice Search Button pinned to the input -->
+            <Button Grid.Column="1" 
+                    Margin="8,0,0,0"
+                    Width="34" 
+                    Height="34"
+                    Background="#FF111827" 
+                    Foreground="White"
+                    BorderBrush="#FF334155"
+                    Content="🎤" 
+                    ToolTip="Search by Voice"
+                    Command="{Binding Search.SearchByVoiceCommand}" />
+        </Grid>
+
+        <!-- Secondary Actions -->
+        <WrapPanel>
             <Button Margin="0,0,8,8" Padding="12,6" Background="#FF111827" Foreground="White" Content="Search" Command="{Binding Search.SearchCommand}" />
             <Button Margin="0,0,8,8" Padding="12,6" Background="#FF7C3AED" Foreground="White" Content="Test Fullscreen" Command="{Binding Search.ToggleFullScreenCommand}" />
         </WrapPanel>
-
 
         <TextBlock Margin="0,2,0,0" FontSize="11" Foreground="#FF94A3B8" Text="{Binding Search.StatusMessage}" TextWrapping="Wrap" />
     </StackPanel>

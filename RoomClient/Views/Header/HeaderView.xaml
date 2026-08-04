@@ -25,13 +25,12 @@
                     VerticalAlignment="Center"
                     Margin="20,0,0,0">
             <Border Width="48" Height="48" Background="#FF2563EB" CornerRadius="14">
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    FontSize="20"
-                    FontWeight="Bold"
-                    Foreground="White"
-                    Text="R" />
+                <TextBlock HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           Text="R" />
             </Border>
             <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
                 <TextBlock FontSize="22" FontWeight="SemiBold" Foreground="White" Text="Room Client" />
@@ -39,18 +38,21 @@
             </StackPanel>
         </StackPanel>
 
-        <!-- Search (pindahan dari SearchView) -->
+        <!-- Search Area -->
         <StackPanel Grid.Column="1"
                     VerticalAlignment="Center"
-                    MaxWidth="480"
+                    MaxWidth="520"
                     Margin="24,0">
-
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
+                    <!-- Kolom untuk Voice Button -->
+                    <ColumnDefinition Width="Auto" />
+                    <!-- Kolom untuk Cari Button -->
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
+                <!-- Input Text -->
                 <TextBox Grid.Column="0"
                          Height="38"
                          Padding="14,8"
@@ -64,9 +66,98 @@
                     </TextBox.InputBindings>
                 </TextBox>
 
-                <Button Grid.Column="1"
+                <!-- Voice Search Button -->
+                <Grid Grid.Column="1" Margin="8,0,0,0">
+                    <Button Width="38"
+            Height="38"
+            Command="{Binding Search.SearchByVoiceCommand}"
+            ToolTip="Cari dengan Suara">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="#FF111827" />
+                                <Setter Property="Foreground" Value="White" />
+                                <Setter Property="BorderBrush" Value="#FF334155" />
+                                <Setter Property="BorderThickness" Value="1" />
+                                <Setter Property="Cursor" Value="Hand" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Grid x:Name="ButtonRoot" Background="Transparent">
+                                                <!-- Ring Gelombang Merah (Efek Pulsing saat Merekam) -->
+                                                <Ellipse x:Name="PulseRing"
+                                         Fill="#EF4444"
+                                         Opacity="0"
+                                         RenderTransformOrigin="0.5,0.5">
+                                                    <Ellipse.RenderTransform>
+                                                        <ScaleTransform x:Name="PulseScale" ScaleX="1" ScaleY="1" />
+                                                    </Ellipse.RenderTransform>
+                                                </Ellipse>
+
+                                                <!-- Tombol Utama -->
+                                                <Border x:Name="ButtonBorder"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="19">
+                                                    <TextBlock x:Name="IconText"
+                                               Text="🎤"
+                                               FontSize="16"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                                </Border>
+                                            </Grid>
+
+                                            <ControlTemplate.Triggers>
+                                                <!-- Trigger Animasi saat Search.IsBusy == True -->
+                                                <DataTrigger Binding="{Binding Search.IsBusy}" Value="True">
+                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#DC2626" />
+                                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#EF4444" />
+                                                    <Setter Property="ToolTip" Value="Mendengarkan..." />
+
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard x:Name="RecordingPulseStoryboard">
+                                                            <Storyboard RepeatBehavior="Forever">
+                                                                <!-- Perbesar Lingkaran Merah -->
+                                                                <DoubleAnimation Storyboard.TargetName="PulseScale"
+                                                                 Storyboard.TargetProperty="ScaleX"
+                                                                 From="1.0" To="1.7"
+                                                                 Duration="0:0:1.2" />
+                                                                <DoubleAnimation Storyboard.TargetName="PulseScale"
+                                                                 Storyboard.TargetProperty="ScaleY"
+                                                                 From="1.0" To="1.7"
+                                                                 Duration="0:0:1.2" />
+                                                                <!-- Pudar Opacity -->
+                                                                <DoubleAnimation Storyboard.TargetName="PulseRing"
+                                                                 Storyboard.TargetProperty="Opacity"
+                                                                 From="0.8" To="0.0"
+                                                                 Duration="0:0:1.2" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+
+                                                    <!-- Hentikan Animasi saat Selesai -->
+                                                    <DataTrigger.ExitActions>
+                                                        <StopStoryboard BeginStoryboardName="RecordingPulseStoryboard" />
+                                                    </DataTrigger.ExitActions>
+                                                </DataTrigger>
+
+                                                <!-- State Disable saat Button tidak aktif -->
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+
+                <!-- Cari Button -->
+                <Button Grid.Column="2"
                         Margin="8,0,0,0"
-                        Padding="16,8"
+                        Padding="16,0"
                         Height="38"
                         Background="#FF7C3AED"
                         Foreground="White"
@@ -74,15 +165,6 @@
                         Content="Cari"
                         Command="{Binding Search.SearchCommand}" />
             </Grid>
-
-            <!--
-            <TextBlock Margin="4,4,4,0"
-                       FontSize="11"
-                       Foreground="#FF94A3B8"
-                       TextWrapping="Wrap"
-                       Text="{Binding Search.StatusMessage}" />
-            -->
-            
         </StackPanel>
 
         <!-- Session Status -->

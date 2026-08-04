@@ -18,6 +18,11 @@ namespace RoomClient.Services.Configuration
             "config.json"
         );
 
+        public AppConfig Config { get; private set; }
+        public ConfigurationService() {
+            Config = LoadCreate();
+        }
+
         public AppConfig LoadCreate()
         {
             if (File.Exists(ConfigPath))

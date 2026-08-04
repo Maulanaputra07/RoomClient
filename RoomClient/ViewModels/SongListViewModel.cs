@@ -30,6 +30,7 @@ namespace RoomClient.ViewModels
             }
 
             await Player.PlayAsync(song);
+            Player.IsFullScreen = true;
         }
 
         [RelayCommand]

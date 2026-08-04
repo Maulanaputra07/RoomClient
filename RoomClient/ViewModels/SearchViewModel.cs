@@ -14,13 +14,18 @@ namespace RoomClient.ViewModels
     public partial class SearchViewModel : ObservableObject
     {
         private readonly IYoutubeService _youtubeService;
+        private readonly IVoiceSearchService _voiceSearchService;
+
         private string _searchQuery;
         private bool _isBusy;
         private string _statusMessage = "Ready";
 
-        public SearchViewModel(IYoutubeService youtubeService)
+        public SearchViewModel(
+            IYoutubeService youtubeService,
+            IVoiceSearchService voiceSearchService)
         {
             _youtubeService = youtubeService;
+            _voiceSearchService = voiceSearchService;
         }
 
         public ObservableCollection<Song> Results { get; set; } = new();
@@ -51,6 +56,34 @@ namespace RoomClient.ViewModels
             StatusMessage = "Ready.";
         }
 
+        private async Task ExecuteSearchAsync()
+        {
+            if (string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                StatusMessage = "Masukkan kata kunci pencarian.";
+                return;
+            }
+
+            StatusMessage = $"Mencari hasil untuk '{SearchQuery}'...";
+
+            try
+            {
+                var results = await _youtubeService.SearchAsync(SearchQuery);
+                Results.Clear();
+                foreach (var song in results)
+                {
+                    Results.Add(song);
+                }
+                StatusMessage = Results.Count > 0
+                ? $"Menemukan {Results.Count} hasil pencarian."
+                : "Tidak menemukan hasil.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Pencarian gagal: {ex.Message}";
+            }   
+        }
+
         [RelayCommand]
         private async Task SearchAsync()
         {
@@ -73,26 +106,50 @@ namespace RoomClient.ViewModels
             }
 
             IsBusy = true;
-            StatusMessage = $"Loading results for '{SearchQuery}'...";
 
             try
             {
-                var results = await _youtubeService.SearchAsync(SearchQuery);
+                await ExecuteSearchAsync();
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
 
+        [RelayCommand]
+        private async Task SearchByVoiceAsync()
+        {
+            if (Player is null || !Player.IsSessionActive)
+            {
+                StatusMessage = "Sesi belum dimulai — tidak dapat mencari lagu.";
                 Results.Clear();
-
-                foreach (var song in results)
+                return;
+            }
+            if (IsBusy)
+            {
+                return;
+            }
+            IsBusy = true;
+            try
+            {
+                StatusMessage = "Mendegarkan pesan suara...";
+                var query = await _voiceSearchService.ListenAsync();
+                if (string.IsNullOrWhiteSpace(query))
                 {
-                    Results.Add(song);
+                    StatusMessage = "Tidak ada suara atau kata kunci tidak ditemukan.";
+                    return;
                 }
-
-                StatusMessage = Results.Count > 0
-                    ? $"Loaded {Results.Count} result(s)."
-                    : "No results found.";
+                SearchQuery = query;
+                await ExecuteSearchAsync();
+            }
+            catch(OperationCanceledException)
+            {
+                StatusMessage = "Voice search dibatalkan.";
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Search failed: {ex.Message}";
+                StatusMessage = $"Voice search failed: {ex.Message}";
             }
             finally
             {

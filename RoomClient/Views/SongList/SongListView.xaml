@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <helpers:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
     </UserControl.Resources>
+
     <Grid Margin="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -18,23 +19,11 @@
 
         <DockPanel Margin="0,0,0,12">
             <StackPanel DockPanel.Dock="Left">
-                <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Song List" />
-                <TextBlock FontSize="12" Foreground="#FF94A3B8" Text="Antrian lagu yang akan diputar di room." />
+                <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" Text="Daftar Lagu" />
             </StackPanel>
-            <Border DockPanel.Dock="Right" Padding="12,8" Background="#FF111827" CornerRadius="999">
-                <TextBlock Foreground="#FF60A5FA" Text="{Binding Search.Results.Count, StringFormat={}{0} items}" />
-            </Border>
-            <Button DockPanel.Dock="Right"
-                    x:Name="ToggleButton"
-                    Margin="0,0,10,0"
-                    Padding="10,6"
-                    Background="#FF1E293B"
-                    Foreground="White"
-                    Click="OnToggleClick" />
         </DockPanel>
 
         <Grid x:Name="ContentGrid" Grid.Row="1">
-            <!-- Pesan kalau kosong -->
             <TextBlock Text="Belum ada hasil pencarian."
                        Foreground="#FF64748B"
                        FontSize="13"
@@ -43,52 +32,73 @@
                        Visibility="{Binding Search.Results.Count, Converter={StaticResource CountToVisibilityConverter}}" />
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Search.Results}">
+                <!-- Tambahkan HorizontalContentAlignment="Stretch" di sini -->
+                <ItemsControl ItemsSource="{Binding Search.Results}" HorizontalContentAlignment="Stretch">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="0,0,0,10" Padding="14" Background="#FF111827" CornerRadius="14">
-                                <Grid>
+                            <Border Margin="0,0,0,12" Padding="14" Background="#FF111827" CornerRadius="14" HorizontalAlignment="Stretch">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <Border Grid.Column="0" Width="64" Height="48" Background="#FF1D4ED8" CornerRadius="12" ClipToBounds="True">
+                                    <!-- Thumbnail -->
+                                    <Border Grid.Row="0" Grid.Column="0" Width="24" Height="24" Background="#FF1D4ED8" CornerRadius="10" ClipToBounds="True">
                                         <Grid>
                                             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" Text="YT" />
                                             <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
                                         </Grid>
                                     </Border>
 
-                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock FontSize="14" FontWeight="SemiBold" Foreground="White" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock FontSize="11" Foreground="#FF94A3B8" Text="{Binding Artist}" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock FontSize="10" Foreground="#FF64748B" Text="{Binding ViewCount, StringFormat={}{0:N0} views}" />
+                                    <!-- Judul & Durasi -->
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock FontSize="15" 
+                                                   FontWeight="SemiBold" 
+                                                   Foreground="White" 
+                                                   Text="{Binding Title}" 
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <TextBlock Margin="0,4,0,0"
+                                                   FontSize="12"
+                                                   FontWeight="Medium"
+                                                   Foreground="#FFFBBF24" 
+                                                   Text="{Binding DurationDisplay}" />
                                     </StackPanel>
 
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0">
-                                        <TextBlock HorizontalAlignment="Right" Foreground="#FFFBBF24" Text="{Binding DurationDisplay}" />
-                                    </StackPanel>
+                                    <!-- Baris Tombol Action -->
+                                    <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,12,0,0" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <Button Grid.Column="3"
-                                            Margin="0,0,10,0"
-                                            Padding="12,6"
-                                            Background="#FF1E293B"
-                                            Foreground="White"
-                                            Content="+ Queue"
-                                            Command="{Binding DataContext.SongList.AddToQueueCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}" />
+                                        <!-- Paksa Stretch pada Button & Center pada Konten Teksnya -->
+                                        <Button Grid.Column="0"
+                                                Padding="0,8"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Center"
+                                                Background="#FF1E293B"
+                                                Foreground="White"
+                                                Content="+ Antrian"
+                                                Command="{Binding DataContext.SongList.AddToQueueCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
 
-                                    <Button Grid.Column="4"
-                                            Padding="14,6"
-                                            Background="#FF2563EB"
-                                            Foreground="White"
-                                            Content="Play"
-                                            Command="{Binding DataContext.SongList.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}" />
+                                        <Button Grid.Column="2"
+                                                Padding="0,8"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Center"
+                                                Background="#FF2563EB"
+                                                Foreground="White"
+                                                Content="Play"
+                                                Command="{Binding DataContext.SongList.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
                                 </Grid>
                             </Border>
                         </DataTemplate>

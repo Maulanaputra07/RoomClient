@@ -14,10 +14,7 @@
     xmlns:register="clr-namespace:RoomClient.Views.Register"
     mc:Ignorable="d"
     Title="Room Client - Karaoke Room"
-    WindowStyle="None"
-    WindowState="Maximized"
     ResizeMode="NoResize"
-    Topmost="True"
     WindowStartupLocation="CenterScreen"
     Loaded="OnLoaded"
     PreviewKeyDown="OnPreviewKeyDown">

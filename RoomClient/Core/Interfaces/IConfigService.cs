@@ -9,6 +9,7 @@ namespace RoomClient.Core.Interfaces
 {
     public interface IConfigService
     {
+        AppConfig Config { get; }
         AppConfig LoadCreate();
         void Save(AppConfig config);
     }

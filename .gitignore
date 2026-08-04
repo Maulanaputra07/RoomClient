@@ -362,4 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-appsettings.json
+RoomClient/AppSettings.json
+
+Models/*.bin
+RoomClient/Models/*.bin

@@ -15,12 +15,13 @@
 
                 <DockPanel Grid.Row="0" Margin="0,0,0,8">
             <StackPanel DockPanel.Dock="Left">
-                <TextBlock FontSize="17" FontWeight="SemiBold" Foreground="White" Text="Video Player" />
+                <TextBlock FontSize="17" FontWeight="SemiBold" Foreground="White" Text="{Binding Player.NowPlaying}" />
             </StackPanel>
-
-                    <Border DockPanel.Dock="Right" Padding="10,6" Background="#FF111827" CornerRadius="999">
+            <!--
+            <Border DockPanel.Dock="Right" Padding="10,6" Background="#FF111827" CornerRadius="999">
                         <TextBlock Foreground="#FFFBBF24" Text="{Binding Player.NowPlaying}" />
             </Border>
+                    --> 
         </DockPanel>
 
                 <Border Grid.Row="1" Background="#FF020617" CornerRadius="16" BorderBrush="#FF1F2937" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

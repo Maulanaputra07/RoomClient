@@ -8,7 +8,7 @@ namespace RoomClient.ViewModels
     public partial class PlayerViewModel : ObservableObject
     {
         private readonly IYoutubeService _youtubeService;
-        private string _nowPlaying = "waiting";
+        private string _nowPlaying = "Tidak ada lagu yang diputar";
         private string? _playerHtml;
         private bool _isSessionActive;
         private string _remainingTimeText = string.Empty;

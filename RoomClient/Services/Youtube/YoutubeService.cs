@@ -14,10 +14,12 @@ namespace RoomClient.Services.Youtube
     {
         private readonly HttpClient _httpClient;
 
-        public YoutubeService(HttpClient httpClient)
+        public YoutubeService(HttpClient httpClient, IConfigService configService)
         {
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri(ConfigurationProvider.ApiSettings.YoutubeAPI);
+
+            var baseUrl = configService.Config.ApiSettings.YoutubeAPI;
+            _httpClient.BaseAddress = new Uri(baseUrl);
         }
 
         public async Task<List<Song>> SearchAsync(string keyword)

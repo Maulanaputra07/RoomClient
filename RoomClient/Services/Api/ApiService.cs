@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Json;
+using RoomClient.Config;
 using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
 
@@ -7,15 +8,15 @@ namespace RoomClient.Services.Api
 {
     public class ApiService : IApiService
     {
-        private static readonly Uri BaseUri = new("http://192.168.1.9:3000/api/");
         private readonly HttpClient _httpClient;
 
-        public ApiService()
+
+        public ApiService(HttpClient httpClient, IConfigService configService)
         {
-            _httpClient = new HttpClient
-            {
-                BaseAddress = BaseUri
-            };
+            _httpClient = httpClient;
+
+            var baseUrl = configService.Config.ApiSettings.ServerAPI;
+            _httpClient.BaseAddress = new Uri(baseUrl);
         }
 
         public async Task<IReadOnlyList<Room>> GetRoomsAsync(CancellationToken cancellationToken = default)

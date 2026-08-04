@@ -24,7 +24,7 @@ namespace RoomClient.Services.SignalR
         public SignalRService(IConfigService configService)
         {
             _configService = configService;
-            _serverUri = new Uri(ConfigurationProvider.ApiSettings.WebSocket);
+            _serverUri = new Uri(configService.Config.ApiSettings.WebSocket);
         }
 
         public async Task<bool> ConnectAsync(CancellationToken cancellationToken = default)

@@ -14,5 +14,20 @@ namespace RoomClient.Core.Models
 
         [JsonPropertyName("is_registered")]
         public bool isRegistered { get; set; }
+
+        [JsonPropertyName("api_settings")]
+        public ApiSettings ApiSettings { get; set; } = new();
+    }
+
+    public class ApiSettings
+    {
+        [JsonPropertyName("server_api")]
+        public string ServerAPI { get; set; } = "http://192.168.137.161:3000/api/";
+
+        [JsonPropertyName("youtube_api")]
+        public string YoutubeAPI { get; set; } = "http://127.0.0.1:8000/";
+
+        [JsonPropertyName("websocket")]
+        public string WebSocket { get; set; } = "http://192.168.137.161:3000";
     }
 }
