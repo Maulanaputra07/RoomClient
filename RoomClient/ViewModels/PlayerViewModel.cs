@@ -1,58 +1,65 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 
 namespace RoomClient.ViewModels
 {
-    public partial class PlayerViewModel : ObservableObject
+    public partial class PlayerViewModel : ObservableObject, IDisposable
     {
+        private readonly IPlayerService _playerService;
         private readonly IYoutubeService _youtubeService;
-        private string _nowPlaying = "Tidak ada lagu yang diputar";
-        private string? _playerHtml;
-        private bool _isSessionActive;
-        private string _remainingTimeText = string.Empty;
-
         private DateTimeOffset? _sessionEndTime;
         private DispatcherTimer? _countdownTimer;
 
+        // Source Generator otomatis mendefinisikan properti PascalCase untuk setiap field di bawah
+        [ObservableProperty]
+        private string _nowPlaying = "Tidak ada lagu yang diputar";
+
+        [ObservableProperty]
+        private string? _playerHtml;
+
+        [ObservableProperty]
+        private bool _isSessionActive;
+
+        [ObservableProperty]
+        private string _remainingTimeText = string.Empty;
+
+        [ObservableProperty]
         private bool _isFullScreen;
 
-        public bool IsFullScreen
+        [ObservableProperty]
+        private bool _isPlaying;
+
+        [ObservableProperty]
+        private Song? _currentSong;
+
+        public PlayerViewModel(IPlayerService playerService, IYoutubeService youtubeService)
         {
-            get => _isFullScreen;
-            set => SetProperty(ref _isFullScreen, value);
+            _playerService = playerService ?? throw new ArgumentNullException(nameof(playerService));
+            _youtubeService = youtubeService ?? throw new ArgumentNullException(nameof(youtubeService));
+
+            _playerService.CurrentSongChanged += OnCurrentSongChanged;
+            _playerService.PlaybackStateChanged += OnPlaybackStateChanged;
         }
 
-        public PlayerViewModel(IYoutubeService youtubeService)
+        [RelayCommand]
+        private async Task TogglePlayPauseAsync()
         {
-            _youtubeService = youtubeService;
-        }
+            if (CurrentSong == null) return;
 
-        public string NowPlaying
-        {
-            get => _nowPlaying;
-            set => SetProperty(ref _nowPlaying, value);
+            if (IsPlaying)
+            {
+                await _playerService.PauseAsync();
+            }
+            else
+            {
+                await _playerService.ResumeAsync();
+            }
         }
-
-        public string? PlayerHtml
-        {
-            get => _playerHtml;
-            private set => SetProperty(ref _playerHtml, value);
-        }
-
-        public bool IsSessionActive
-        {
-            get => _isSessionActive;
-            private set => SetProperty(ref _isSessionActive, value);
-        }
-
-        public string RemainingTimeText
-        {
-            get => _remainingTimeText;
-            private set => SetProperty(ref _remainingTimeText, value);
-        }
-
 
         public void ActivateSession(DateTimeOffset sessionEndTime)
         {
@@ -72,16 +79,21 @@ namespace RoomClient.ViewModels
 
         private void StartCountdown()
         {
-            _countdownTimer?.Stop();
-            _countdownTimer = new DispatcherTimer
+            if (_countdownTimer is null)
             {
-                Interval = TimeSpan.FromSeconds(1)
-            };
-            _countdownTimer.Tick += (s, e) => UpdateRemainingTime();
-            _countdownTimer.Start();
+                _countdownTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(1)
+                };
+                _countdownTimer.Tick += OnTimerTick;
+            }
 
+            _countdownTimer.Stop();
+            _countdownTimer.Start();
             UpdateRemainingTime();
         }
+
+        private void OnTimerTick(object? sender, EventArgs e) => UpdateRemainingTime();
 
         private void UpdateRemainingTime()
         {
@@ -91,7 +103,7 @@ namespace RoomClient.ViewModels
                 return;
             }
 
-            var remaining = _sessionEndTime.Value - DateTime.Now;
+            var remaining = _sessionEndTime.Value - DateTimeOffset.Now;
 
             if (remaining <= TimeSpan.Zero)
             {
@@ -99,6 +111,7 @@ namespace RoomClient.ViewModels
                 _countdownTimer?.Stop();
                 IsSessionActive = false;
                 NowPlaying = "Sesi telah berakhir";
+                _ = StopAsync();
                 return;
             }
 
@@ -106,7 +119,6 @@ namespace RoomClient.ViewModels
                 ? remaining.ToString(@"hh\:mm\:ss")
                 : remaining.ToString(@"mm\:ss");
         }
-
 
         public async Task PlayAsync(Song song)
         {
@@ -116,10 +128,7 @@ namespace RoomClient.ViewModels
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(song.VideoId))
-            {
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(song.VideoId)) return;
 
             NowPlaying = "Memuat...";
 
@@ -135,11 +144,8 @@ namespace RoomClient.ViewModels
                     return;
                 }
 
-                NowPlaying = string.IsNullOrWhiteSpace(song.Artist)
-                    ? song.Title
-                    : $"{song.Title} - {song.Artist}";
-                await Task.Delay(50);
                 PlayerHtml = _youtubeService.BuildPlayerHtml(streamUrl);
+                await _playerService.PlayAsync(song);
             }
             catch (Exception ex)
             {
@@ -147,11 +153,47 @@ namespace RoomClient.ViewModels
             }
         }
 
-        public void Stop()
+        [RelayCommand]
+        public async Task StopAsync()
         {
             NowPlaying = "waiting";
             PlayerHtml = null;
             IsSessionActive = false;
+
+            if (_countdownTimer != null)
+            {
+                _countdownTimer.Stop();
+            }
+
+            await _playerService.StopAsync();
+        }
+
+        private void OnCurrentSongChanged(object? sender, Song? song)
+        {
+            CurrentSong = song;
+            if (song != null)
+            {
+                NowPlaying = string.IsNullOrWhiteSpace(song.Artist)
+                    ? song.Title
+                    : $"{song.Title} - {song.Artist}";
+            }
+        }
+
+        private void OnPlaybackStateChanged(object? sender, PlaybackState state)
+        {
+            IsPlaying = state == PlaybackState.Playing;
+        }
+
+        public void Dispose()
+        {
+            _playerService.CurrentSongChanged -= OnCurrentSongChanged;
+            _playerService.PlaybackStateChanged -= OnPlaybackStateChanged;
+
+            if (_countdownTimer != null)
+            {
+                _countdownTimer.Stop();
+                _countdownTimer.Tick -= OnTimerTick;
+            }
         }
     }
 }
