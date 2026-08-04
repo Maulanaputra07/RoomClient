@@ -18,6 +18,7 @@ namespace RoomClient.ViewModels
 
         private string _searchQuery;
         private bool _isBusy;
+        private bool _isListening;
         private string _statusMessage = "Ready";
 
         public SearchViewModel(
@@ -31,6 +32,12 @@ namespace RoomClient.ViewModels
         public ObservableCollection<Song> Results { get; set; } = new();
 
         public PlayerViewModel? Player { get; set; }
+
+        public bool IsListening
+        {
+            get => _isListening;
+            set => SetProperty(ref _isListening, value);
+        }
 
         public string SearchQuery
         {
@@ -131,10 +138,12 @@ namespace RoomClient.ViewModels
                 return;
             }
             IsBusy = true;
+            IsListening = true;
             try
             {
                 StatusMessage = "Mendegarkan pesan suara...";
                 var query = await _voiceSearchService.ListenAsync();
+                IsListening = false;
                 if (string.IsNullOrWhiteSpace(query))
                 {
                     StatusMessage = "Tidak ada suara atau kata kunci tidak ditemukan.";
@@ -153,6 +162,7 @@ namespace RoomClient.ViewModels
             }
             finally
             {
+                IsListening = false;
                 IsBusy = false;
             }
         }

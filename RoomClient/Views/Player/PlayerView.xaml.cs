@@ -9,6 +9,8 @@ namespace RoomClient.Views.Player
 {
     public partial class PlayerView : UserControl
     {
+        private static CoreWebView2Environment? _sharedEnvironment; // <-- tambahkan ini
+        private static readonly SemaphoreSlim _envLock = new(1, 1);
         private PlayerViewModel? _playerViewModel;
         private WebViewPlayer? _player;
         private bool _webViewInitialized;
@@ -29,15 +31,16 @@ namespace RoomClient.Views.Player
                 return;
             }
 
-            await EnsureWebViewAsync();
             await LoadCurrentPlayerHtmlAsync();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            _player?.Dispose();
-            _player = null;
-            _webViewInitialized = false;
+            // Pastikan pemutaran dihentikan dulu sebelum dispose agar audio lama tidak menggantung
+            //_player?.Dispose();
+            //_player = null;
+            //_webViewInitialized = false;
+            _player?.Clear();
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -78,6 +81,9 @@ namespace RoomClient.Views.Player
 
         private async Task LoadCurrentPlayerHtmlAsync()
         {
+            // PERBAIKAN: Tunggu WebView2 siap terlebih dahulu, jangan di-return/diabaikan!
+            await EnsureWebViewAsync();
+
             if (!_webViewInitialized)
             {
                 return;
@@ -91,52 +97,59 @@ namespace RoomClient.Views.Player
             {
                 _player?.Clear();
             }
-
-                await Task.CompletedTask;
         }
 
         private async Task EnsureWebViewAsync()
         {
-            // Log TANPA SYARAT di paling awal — kalau baris ini saja tidak muncul di log,
-            // berarti method ini memang tidak pernah dipanggil sama sekali dari caller-nya.
             LogWebViewIssue($"EnsureWebViewAsync called. _webViewInitialized={_webViewInitialized}");
 
             if (_webViewInitialized)
             {
                 return;
             }
+
+            if (PlayerWebView.CoreWebView2 is not null)
+            {
+                _player ??= new WebViewPlayer(PlayerWebView);
+                _webViewInitialized = true;
+                LogWebViewIssue("CoreWebView2 already existed on control, reused it.");
+                return;
+            }
+
             try
             {
-                // Folder yang PASTI writable di semua kondisi (admin ataupun standard user),
-                // terlepas dari lokasi instalasi app (mis. Program Files).
-                var userDataFolder = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "RoomClient", "WebView2");
+                await _envLock.WaitAsync();
+                try
+                {
+                    if (_sharedEnvironment is null)
+                    {
+                        var userDataFolder = System.IO.Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            "RoomClient", "WebView2");
 
-                var options = new CoreWebView2EnvironmentOptions(
-                    "--autoplay-policy=no-user-gesture-required");
+                        var options = new CoreWebView2EnvironmentOptions(
+                            "--autoplay-policy=no-user-gesture-required");
 
-                var environment = await CoreWebView2Environment.CreateAsync(
-                    browserExecutableFolder: null,
-                    userDataFolder: userDataFolder,
-                    options: options);
+                        _sharedEnvironment = await CoreWebView2Environment.CreateAsync(
+                            browserExecutableFolder: null,
+                            userDataFolder: userDataFolder,
+                            options: options);
+                    }
+                }
+                finally
+                {
+                    _envLock.Release();
+                }
 
-                await PlayerWebView.EnsureCoreWebView2Async(environment);
+                await PlayerWebView.EnsureCoreWebView2Async(_sharedEnvironment);
 
                 if (PlayerWebView.CoreWebView2 is null)
                 {
-                    // Jalur ini SEBELUMNYA tidak di-log sama sekali — inilah kenapa
-                    // webview2-error.log tidak muncul di beberapa laptop meskipun
-                    // WebView2 gagal init. EnsureCoreWebView2Async bisa "berhasil"
-                    // (tidak throw) tapi CoreWebView2 tetap null di beberapa environment.
-                    LogWebViewIssue("CoreWebView2 is null setelah EnsureCoreWebView2Async " +
-                        "(tidak ada exception, tapi init gagal secara silent)");
+                    LogWebViewIssue("CoreWebView2 is null setelah EnsureCoreWebView2Async");
                     return;
                 }
 
-                // Log versi runtime yang benar-benar dipakai — berguna untuk
-                // membandingkan versi WebView2 antar laptop yang bermasalah vs tidak.
-                LogWebViewIssue($"WebView2 initialized OK. Runtime version: {environment.BrowserVersionString}");
+                LogWebViewIssue($"WebView2 initialized OK. Runtime version: {_sharedEnvironment.BrowserVersionString}");
 
                 _player ??= new WebViewPlayer(PlayerWebView);
                 _webViewInitialized = true;
@@ -148,7 +161,6 @@ namespace RoomClient.Views.Player
             }
         }
 
-        // Helper terpusat supaya semua jalur (exception maupun silent-null) pasti ke-log.
         private static void LogWebViewIssue(string message)
         {
             System.Diagnostics.Debug.WriteLine($"WebView2 issue: {message}");
@@ -162,7 +174,7 @@ namespace RoomClient.Views.Player
             }
             catch
             {
-                // Kalau logging pun gagal, tidak ada lagi yang bisa dilakukan di sini
+                // Ignore logging failures
             }
         }
     }

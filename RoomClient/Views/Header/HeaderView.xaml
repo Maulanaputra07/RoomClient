@@ -109,7 +109,7 @@
 
                                             <ControlTemplate.Triggers>
                                                 <!-- Trigger Animasi saat Search.IsBusy == True -->
-                                                <DataTrigger Binding="{Binding Search.IsBusy}" Value="True">
+                                                <DataTrigger Binding="{Binding Search.IsListening}" Value="True">
                                                     <Setter TargetName="ButtonBorder" Property="Background" Value="#DC2626" />
                                                     <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#EF4444" />
                                                     <Setter Property="ToolTip" Value="Mendengarkan..." />
@@ -167,24 +167,49 @@
             </Grid>
         </StackPanel>
 
-        <!-- Session Status -->
-        <Border Grid.Column="2"
-                Margin="0,0,20,0"
-                Padding="12,6"
-                CornerRadius="12"
-                Background="#FF1E293B"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Right">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Ellipse Width="10" Height="10"
-                         VerticalAlignment="Center"
-                         Fill="{Binding Player.IsSessionActive, Converter={StaticResource StatusBrushConverter}}" />
-                <TextBlock Margin="8,0,0,0"
-                           FontSize="13"
-                           FontWeight="Medium"
-                           Foreground="White"
-                           Text="{Binding Player.IsSessionActive, Converter={StaticResource StatusTextConverter}}" />
-            </StackPanel>
-        </Border>
+        <!-- Session Info -->
+        <StackPanel Grid.Column="2"
+            Orientation="Horizontal"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Right"
+            Margin="0,0,20,0">
+
+            <!-- Remaining Time -->
+            <Border Margin="0,0,10,0"
+            Padding="12,6"
+            CornerRadius="12"
+            Background="#FF1E293B"
+            VerticalAlignment="Center">
+                <TextBlock FontSize="26"
+                   FontWeight="Bold"
+                   Foreground="#FFFACC15"
+                   Text="{Binding Player.RemainingTimeText, FallbackValue=--:--}"
+                   VerticalAlignment="Center" />
+            </Border>
+
+            <!-- Session Status -->
+            <Border Padding="12,6"
+            CornerRadius="12"
+            Background="#FF1E293B"
+            VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal"
+                    VerticalAlignment="Center">
+
+                    <Ellipse Width="10"
+                     Height="10"
+                     VerticalAlignment="Center"
+                     Fill="{Binding Player.IsSessionActive,
+                                    Converter={StaticResource StatusBrushConverter}}" />
+
+                    <TextBlock Margin="8,0,0,0"
+                       FontSize="13"
+                       FontWeight="Medium"
+                       Foreground="White"
+                       Text="{Binding Player.IsSessionActive,
+                                      Converter={StaticResource StatusTextConverter}}" />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
     </Grid>
 </UserControl>

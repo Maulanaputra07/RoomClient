@@ -125,6 +125,8 @@ namespace RoomClient.ViewModels
 
             try
             {
+                PlayerHtml = null;
+
                 var streamUrl = await _youtubeService.GetStreamUrlAsync(song.VideoId);
 
                 if (string.IsNullOrWhiteSpace(streamUrl))
@@ -136,6 +138,7 @@ namespace RoomClient.ViewModels
                 NowPlaying = string.IsNullOrWhiteSpace(song.Artist)
                     ? song.Title
                     : $"{song.Title} - {song.Artist}";
+                await Task.Delay(50);
                 PlayerHtml = _youtubeService.BuildPlayerHtml(streamUrl);
             }
             catch (Exception ex)

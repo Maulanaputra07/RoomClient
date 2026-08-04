@@ -7,13 +7,13 @@
              mc:Ignorable="d"
             d:DesignHeight="380"
             d:DesignWidth="1200">
-            <Grid Margin="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid Margin="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                <DockPanel Grid.Row="0" Margin="8">
             <StackPanel DockPanel.Dock="Left">
                 <TextBlock FontSize="17" FontWeight="SemiBold" Foreground="White" Text="{Binding Player.NowPlaying}" />
             </StackPanel>
@@ -24,7 +24,7 @@
                     --> 
         </DockPanel>
 
-                <Border Grid.Row="1" Background="#FF020617" CornerRadius="16" BorderBrush="#FF1F2937" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Border Grid.Row="1" Background="#FF020617" BorderBrush="#FF1F2937" BorderThickness="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid>
                         <wv2:WebView2 x:Name="PlayerWebView" />
 

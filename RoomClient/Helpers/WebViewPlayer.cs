@@ -1,5 +1,6 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using System;
 
 namespace RoomClient.Helpers
 {
@@ -18,9 +19,23 @@ namespace RoomClient.Helpers
             }
 
             _webView.CoreWebView2.Settings.IsWebMessageEnabled = true;
-            _webView.CoreWebView2.AddWebResourceRequestedFilter(
-                "*",
-                CoreWebView2WebResourceContext.All);
+
+            // Lepas handler lama jika ada untuk mencegah duplikasi event
+            _webView.CoreWebView2.WebResourceRequested -= CoreWebView2_WebResourceRequested;
+            _webView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+
+            // Tambahkan filter dengan aman (cegah error jika filter sudah terdaftar)
+            try
+            {
+                _webView.CoreWebView2.AddWebResourceRequestedFilter(
+                    "*",
+                    CoreWebView2WebResourceContext.All);
+            }
+            catch
+            {
+                // Filter sudah ada pada instance CoreWebView2 ini
+            }
+
             _webView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
             _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
         }
@@ -28,12 +43,38 @@ namespace RoomClient.Helpers
         public void LoadHtml(string html)
         {
             ThrowIfDisposed();
+
+            if (_webView.CoreWebView2 is null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                Clear();
+                return;
+            }
+
             _webView.NavigateToString(html);
         }
 
         public void Clear()
         {
-            _webView.CoreWebView2?.NavigateToString("<html><body style='background:black;margin:0'></body></html>");
+            if (_disposed || _webView.CoreWebView2 is null)
+            {
+                return;
+            }
+
+            try
+            {
+                // Navigasi ke about:blank untuk memutus seluruh stream audio/video Chromium secara instan
+                _webView.CoreWebView2.Navigate("about:blank");
+            }
+            catch
+            {
+                // Fallback jika CoreWebView2 sedang dalam transisi
+                _webView.NavigateToString("<html><body style='background:black;margin:0'></body></html>");
+            }
         }
 
         private void CoreWebView2_WebResourceRequested(
@@ -66,8 +107,23 @@ namespace RoomClient.Helpers
 
             if (_webView.CoreWebView2 is not null)
             {
+                // 1. Hentikan pemutaran lagu lama secara total sebelum objek dibuang
+                Clear();
+
+                // 2. Unhook semua event listener
                 _webView.CoreWebView2.WebResourceRequested -= CoreWebView2_WebResourceRequested;
                 _webView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+
+                // 3. Bersihkan filter resource request
+                try
+                {
+                    _webView.CoreWebView2.RemoveWebResourceRequestedFilter(
+                        "*",
+                        CoreWebView2WebResourceContext.All);
+                }
+                catch
+                {
+                }
             }
 
             _disposed = true;
