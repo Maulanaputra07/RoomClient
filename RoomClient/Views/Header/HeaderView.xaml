@@ -46,9 +46,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <!-- Kolom untuk Voice Button -->
                     <ColumnDefinition Width="Auto" />
-                    <!-- Kolom untuk Cari Button -->
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
@@ -60,6 +58,7 @@
                          Foreground="White"
                          BorderBrush="#FF334155"
                          VerticalContentAlignment="Center"
+                         IsEnabled="{Binding Search.IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" 
                          Text="{Binding Search.SearchQuery, UpdateSourceTrigger=PropertyChanged}">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Return" Command="{Binding Search.SearchCommand}" />
@@ -69,9 +68,9 @@
                 <!-- Voice Search Button -->
                 <Grid Grid.Column="1" Margin="8,0,0,0">
                     <Button Width="38"
-            Height="38"
-            Command="{Binding Search.SearchByVoiceCommand}"
-            ToolTip="Cari dengan Suara">
+                            Height="38"
+                            Command="{Binding Search.SearchByVoiceCommand}"
+                            ToolTip="Cari dengan Suara">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Background" Value="#FF111827" />
@@ -85,9 +84,9 @@
                                             <Grid x:Name="ButtonRoot" Background="Transparent">
                                                 <!-- Ring Gelombang Merah (Efek Pulsing saat Merekam) -->
                                                 <Ellipse x:Name="PulseRing"
-                                         Fill="#EF4444"
-                                         Opacity="0"
-                                         RenderTransformOrigin="0.5,0.5">
+                                                         Fill="#EF4444"
+                                                         Opacity="0"
+                                                         RenderTransformOrigin="0.5,0.5">
                                                     <Ellipse.RenderTransform>
                                                         <ScaleTransform x:Name="PulseScale" ScaleX="1" ScaleY="1" />
                                                     </Ellipse.RenderTransform>
@@ -95,20 +94,19 @@
 
                                                 <!-- Tombol Utama -->
                                                 <Border x:Name="ButtonBorder"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        CornerRadius="19">
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="19">
                                                     <TextBlock x:Name="IconText"
-                                               Text="🎤"
-                                               FontSize="16"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" />
+                                                               Text="🎤"
+                                                               FontSize="16"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
                                                 </Border>
                                             </Grid>
 
                                             <ControlTemplate.Triggers>
-                                                <!-- Trigger Animasi saat Search.IsBusy == True -->
                                                 <DataTrigger Binding="{Binding Search.IsListening}" Value="True">
                                                     <Setter TargetName="ButtonBorder" Property="Background" Value="#DC2626" />
                                                     <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#EF4444" />
@@ -117,31 +115,27 @@
                                                     <DataTrigger.EnterActions>
                                                         <BeginStoryboard x:Name="RecordingPulseStoryboard">
                                                             <Storyboard RepeatBehavior="Forever">
-                                                                <!-- Perbesar Lingkaran Merah -->
                                                                 <DoubleAnimation Storyboard.TargetName="PulseScale"
-                                                                 Storyboard.TargetProperty="ScaleX"
-                                                                 From="1.0" To="1.7"
-                                                                 Duration="0:0:1.2" />
+                                                                                 Storyboard.TargetProperty="ScaleX"
+                                                                                 From="1.0" To="1.7"
+                                                                                 Duration="0:0:1.2" />
                                                                 <DoubleAnimation Storyboard.TargetName="PulseScale"
-                                                                 Storyboard.TargetProperty="ScaleY"
-                                                                 From="1.0" To="1.7"
-                                                                 Duration="0:0:1.2" />
-                                                                <!-- Pudar Opacity -->
+                                                                                 Storyboard.TargetProperty="ScaleY"
+                                                                                 From="1.0" To="1.7"
+                                                                                 Duration="0:0:1.2" />
                                                                 <DoubleAnimation Storyboard.TargetName="PulseRing"
-                                                                 Storyboard.TargetProperty="Opacity"
-                                                                 From="0.8" To="0.0"
-                                                                 Duration="0:0:1.2" />
+                                                                                 Storyboard.TargetProperty="Opacity"
+                                                                                 From="0.8" To="0.0"
+                                                                                 Duration="0:0:1.2" />
                                                             </Storyboard>
                                                         </BeginStoryboard>
                                                     </DataTrigger.EnterActions>
 
-                                                    <!-- Hentikan Animasi saat Selesai -->
                                                     <DataTrigger.ExitActions>
                                                         <StopStoryboard BeginStoryboardName="RecordingPulseStoryboard" />
                                                     </DataTrigger.ExitActions>
                                                 </DataTrigger>
 
-                                                <!-- State Disable saat Button tidak aktif -->
                                                 <Trigger Property="IsEnabled" Value="False">
                                                     <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
                                                 </Trigger>
@@ -154,62 +148,95 @@
                     </Button>
                 </Grid>
 
-                <!-- Cari Button -->
+                <!-- Cari Button dengan Loading State -->
                 <Button Grid.Column="2"
                         Margin="8,0,0,0"
-                        Padding="16,0"
                         Height="38"
-                        Background="#FF7C3AED"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Content="Cari"
-                        Command="{Binding Search.SearchCommand}" />
+                        Command="{Binding Search.SearchCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="#FF7C3AED" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Border" Background="#FF7C3AED" CornerRadius="6">
+                                            <TextBlock x:Name="BtnText"
+                   Text="Cari"
+                   Padding="16,0"
+                   Foreground="White"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <ControlTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Search.IsBusy}" Value="True">
+                                                <Setter TargetName="BtnText" Property="Text" Value="Mencari..." />
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard x:Name="PulseTextStoryboard">
+                                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                            <DoubleAnimation Storyboard.TargetName="BtnText"
+                                         Storyboard.TargetProperty="Opacity"
+                                         From="1.0" To="0.3" Duration="0:0:0.6" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="PulseTextStoryboard" />
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
             </Grid>
         </StackPanel>
 
         <!-- Session Info -->
         <StackPanel Grid.Column="2"
-            Orientation="Horizontal"
-            VerticalAlignment="Center"
-            HorizontalAlignment="Right"
-            Margin="0,0,20,0">
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Margin="0,0,20,0">
 
             <!-- Remaining Time -->
             <Border Margin="0,0,10,0"
-            Padding="12,6"
-            CornerRadius="12"
-            Background="#FF1E293B"
-            VerticalAlignment="Center">
+                    Padding="12,6"
+                    CornerRadius="12"
+                    Background="#FF1E293B"
+                    VerticalAlignment="Center">
                 <TextBlock FontSize="26"
-                   FontWeight="Bold"
-                   Foreground="#FFFACC15"
-                   Text="{Binding Player.RemainingTimeText, FallbackValue=--:--}"
-                   VerticalAlignment="Center" />
+                           FontWeight="Bold"
+                           Foreground="#FFFACC15"
+                           Text="{Binding Player.RemainingTimeText, FallbackValue=--:--}"
+                           VerticalAlignment="Center" />
             </Border>
 
             <!-- Session Status -->
             <Border Padding="12,6"
-            CornerRadius="12"
-            Background="#FF1E293B"
-            VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal"
+                    CornerRadius="12"
+                    Background="#FF1E293B"
                     VerticalAlignment="Center">
-
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="10"
-                     Height="10"
-                     VerticalAlignment="Center"
-                     Fill="{Binding Player.IsSessionActive,
-                                    Converter={StaticResource StatusBrushConverter}}" />
+                             Height="10"
+                             VerticalAlignment="Center"
+                             Fill="{Binding Player.IsSessionActive, Converter={StaticResource StatusBrushConverter}}" />
 
                     <TextBlock Margin="8,0,0,0"
-                       FontSize="13"
-                       FontWeight="Medium"
-                       Foreground="White"
-                       Text="{Binding Player.IsSessionActive,
-                                      Converter={StaticResource StatusTextConverter}}" />
+                               FontSize="13"
+                               FontWeight="Medium"
+                               Foreground="White"
+                               Text="{Binding Player.IsSessionActive, Converter={StaticResource StatusTextConverter}}" />
                 </StackPanel>
             </Border>
-
         </StackPanel>
     </Grid>
 </UserControl>

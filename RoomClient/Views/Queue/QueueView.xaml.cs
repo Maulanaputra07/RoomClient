@@ -10,7 +10,7 @@ namespace RoomClient.Views.Queue
     public partial class QueueView : UserControl
     {
         public Grid ContentGridControl => ContentGrid;
-        public Button ToggleButtonControl => ToggleButton;
+        //public Button ToggleButtonControl => ToggleButton;
 
         private bool _isCollapsed;
         private ObservableCollection<QueueSong>? _observedQueue;
@@ -20,7 +20,7 @@ namespace RoomClient.Views.Queue
         public QueueView()
         {
             InitializeComponent();
-            ToggleButton.Content = "▲ Hide";
+            //ToggleButton.Content = "▲ Hide";
 
             DataContextChanged += OnDataContextChanged;
         }
@@ -67,9 +67,9 @@ namespace RoomClient.Views.Queue
                 ? Visibility.Collapsed
                 : Visibility.Visible;
 
-            ToggleButton.Content = _isCollapsed
-                ? "▼ Show"
-                : "▲ Hide";
+            //ToggleButton.Content = _isCollapsed
+            //    ? "▼ Show"
+            //    : "▲ Hide";
         }
 
         private void OnToggleClick(object sender, RoutedEventArgs e)
@@ -80,9 +80,9 @@ namespace RoomClient.Views.Queue
                 ? Visibility.Collapsed
                 : Visibility.Visible;
 
-            ToggleButton.Content = _isCollapsed
-                ? "▼ Show"
-                : "▲ Hide";
+            //ToggleButton.Content = _isCollapsed
+            //    ? "▼ Show"
+            //    : "▲ Hide";
 
             ToggleRequested?.Invoke(this, _isCollapsed);
         }
