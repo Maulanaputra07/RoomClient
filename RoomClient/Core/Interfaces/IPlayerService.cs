@@ -25,6 +25,9 @@ namespace RoomClient.Core.Interfaces
         event EventHandler<Song?>? CurrentSongChanged;
         event EventHandler<PlaybackState>? PlaybackStateChanged;
         event EventHandler<TimeSpan>? PositionChanged;
+        event EventHandler<string>? JavaScriptCommandRequested;
+
+        void UpdatePlaybackStateFromWebView(PlaybackState state);
 
         Task PlayAsync(Song song);
         Task ResumeAsync();

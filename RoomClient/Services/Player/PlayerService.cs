@@ -16,6 +16,7 @@ namespace RoomClient.Services.Player
         private PlaybackState _state = PlaybackState.Stopped;
         private TimeSpan _currentPosition = TimeSpan.Zero;
         private TimeSpan _duration = TimeSpan.Zero;
+        public event EventHandler<string>? JavaScriptCommandRequested;
 
         private readonly PlayerViewModel _playerViewModel;
 
@@ -72,6 +73,13 @@ namespace RoomClient.Services.Player
         {
         }
 
+        public void UpdatePlaybackStateFromWebView(PlaybackState state)
+        {
+            // Langsung set State, TIDAK invoke JavaScriptCommandRequested,
+            // karena perubahan ini datang DARI video, bukan mau dikirim KE video
+            State = state;
+        }
+
         public Task PlayAsync(Song song)
         {
             CurrentSong = song;
@@ -86,7 +94,7 @@ namespace RoomClient.Services.Player
             if (CurrentSong != null && State == PlaybackState.Paused)
             {
                 State = PlaybackState.Playing;
-                // Masukkan logika resume media di sini
+                JavaScriptCommandRequested?.Invoke(this, "resumeVideo();");
             }
             return Task.CompletedTask;
         }
@@ -96,7 +104,7 @@ namespace RoomClient.Services.Player
             if (State == PlaybackState.Playing)
             {
                 State = PlaybackState.Paused;
-                // Masukkan logika pause media di sini
+                JavaScriptCommandRequested?.Invoke(this, "pauseVideo();");
             }
             return Task.CompletedTask;
         }
@@ -106,14 +114,14 @@ namespace RoomClient.Services.Player
             State = PlaybackState.Stopped;
             CurrentSong = null;
             CurrentPosition = TimeSpan.Zero;
-            // Masukkan logika stop media di sini
+            JavaScriptCommandRequested?.Invoke(this, "stopVideo();");
             return Task.CompletedTask;
         }
 
         public Task SeekAsync(TimeSpan position)
         {
             CurrentPosition = position;
-            // Masukkan logika seek media di sini
+            JavaScriptCommandRequested?.Invoke(this, $"player.currentTime = {position.TotalSeconds};");
             return Task.CompletedTask;
         }
 

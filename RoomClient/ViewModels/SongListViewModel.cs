@@ -24,10 +24,10 @@ namespace RoomClient.ViewModels
                 return;
             }
 
-            if (!Player.IsSessionActive)
-            {
-                return;
-            }
+            //if (!Player.IsSessionActive)
+            //{
+            //    return;
+            //}
 
             await Player.PlayAsync(song);
             Player.IsFullScreen = true;

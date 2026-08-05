@@ -76,6 +76,8 @@ namespace RoomClient.Services.Youtube
             }
         }
 
+
+
         public string BuildPlayerHtml(string streamUrl)
         {
             var escapedUrl = EscapeJavaScriptString(streamUrl);
@@ -103,6 +105,12 @@ namespace RoomClient.Services.Youtube
           player.addEventListener('loadeddata', function() {{
             window.chrome.webview.postMessage(JSON.stringify({{ type: 'ready' }}));
           }});
+        player.addEventListener('play', function() {{
+          window.chrome.webview.postMessage(JSON.stringify({{ type: 'play' }}));
+        }});
+        player.addEventListener('pause', function() {{
+          window.chrome.webview.postMessage(JSON.stringify({{ type: 'pause' }}));
+        }});
           function pauseVideo() {{ player.pause(); }}
           function resumeVideo() {{ player.play(); }}
           function stopVideo() {{ player.pause(); player.currentTime = 0; }}

@@ -14,6 +14,7 @@ namespace RoomClient.ViewModels
         private readonly IYoutubeService _youtubeService;
         private DateTimeOffset? _sessionEndTime;
         private DispatcherTimer? _countdownTimer;
+        public event EventHandler<string>? JavaScriptCommandRequested;
 
         // Source Generator otomatis mendefinisikan properti PascalCase untuk setiap field di bawah
         [ObservableProperty]
@@ -44,7 +45,10 @@ namespace RoomClient.ViewModels
 
             _playerService.CurrentSongChanged += OnCurrentSongChanged;
             _playerService.PlaybackStateChanged += OnPlaybackStateChanged;
+            _playerService.JavaScriptCommandRequested += OnJavaScriptCommandRequested;
         }
+        private void OnJavaScriptCommandRequested(object? sender, string js) => JavaScriptCommandRequested?.Invoke(this, js);
+
 
         [RelayCommand]
         private async Task TogglePlayPauseAsync()
@@ -122,11 +126,11 @@ namespace RoomClient.ViewModels
 
         public async Task PlayAsync(Song song)
         {
-            if (!IsSessionActive)
-            {
-                NowPlaying = "Sesi belum dimulai";
-                return;
-            }
+            //if (!IsSessionActive)
+            //{
+            //    NowPlaying = "Sesi belum dimulai";
+            //    return;
+            //}
 
             if (string.IsNullOrWhiteSpace(song.VideoId)) return;
 
@@ -168,6 +172,23 @@ namespace RoomClient.ViewModels
             await _playerService.StopAsync();
         }
 
+        private bool CanGoNext() => CurrentSong is not null;
+        private bool CanGoPrevious() => CurrentSong is not null;
+
+        [RelayCommand(CanExecute = nameof(CanGoNext))]
+        private async Task NextAsync()
+        {
+            if (CurrentSong is null) return;
+            await _playerService.NextAsync();
+        }
+
+        [RelayCommand(CanExecute = nameof(CanGoPrevious))]
+        private async Task PreviousAsync()
+        {
+            if (CurrentSong is null) return;
+            await _playerService.PreviousAsync();
+        }
+
         private void OnCurrentSongChanged(object? sender, Song? song)
         {
             CurrentSong = song;
@@ -177,6 +198,9 @@ namespace RoomClient.ViewModels
                     ? song.Title
                     : $"{song.Title} - {song.Artist}";
             }
+
+            NextCommand.NotifyCanExecuteChanged();
+            PreviousCommand.NotifyCanExecuteChanged();
         }
 
         private void OnPlaybackStateChanged(object? sender, PlaybackState state)
@@ -188,12 +212,23 @@ namespace RoomClient.ViewModels
         {
             _playerService.CurrentSongChanged -= OnCurrentSongChanged;
             _playerService.PlaybackStateChanged -= OnPlaybackStateChanged;
+            _playerService.JavaScriptCommandRequested -= OnJavaScriptCommandRequested;
 
             if (_countdownTimer != null)
             {
                 _countdownTimer.Stop();
                 _countdownTimer.Tick -= OnTimerTick;
             }
+        }
+
+        public void NotifyWebViewPlaybackState(PlaybackState state) => _playerService.UpdatePlaybackStateFromWebView(state);
+
+        public void NotifySongEnded()
+        {
+            if (NextCommand.CanExecute(null))
+                NextCommand.Execute(null);
+            else
+                _ = StopAsync();
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Microsoft.Web.WebView2.Core;
+using RoomClient.Core.Interfaces;
 using RoomClient.Helpers;
 using RoomClient.ViewModels;
 using System.ComponentModel;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,6 +16,7 @@ namespace RoomClient.Views.Player
         private PlayerViewModel? _playerViewModel;
         private WebViewPlayer? _player;
         private bool _webViewInitialized;
+        private bool _webMessageSubscribed;
 
         public PlayerView()
         {
@@ -22,6 +25,45 @@ namespace RoomClient.Views.Player
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
             DataContextChanged += OnDataContextChanged;
+        }
+
+
+        private void SubscribeWebMessages()
+        {
+            if (_webMessageSubscribed || PlayerWebView.CoreWebView2 is null) return;
+
+            PlayerWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
+            _webMessageSubscribed = true;
+        }
+
+        private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            try
+            {
+                var json = e.WebMessageAsJson; // atau e.TryGetWebMessageAsString() tergantung format post
+                using var doc = JsonDocument.Parse(json);
+                var type = doc.RootElement.GetProperty("type").GetString();
+
+                switch (type)
+                {
+                    case "play":
+                        _playerViewModel?.NotifyWebViewPlaybackState(PlaybackState.Playing);
+                        break;
+                    case "pause":
+                        _playerViewModel?.NotifyWebViewPlaybackState(PlaybackState.Paused);
+                        break;
+                    case "ended":
+                        _playerViewModel?.NotifySongEnded();
+                        break;
+                    case "error":
+                        LogWebViewIssue("Video playback error dari WebView.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogWebViewIssue($"Gagal parse WebMessage: {ex}");
+            }
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -40,6 +82,11 @@ namespace RoomClient.Views.Player
             //_player?.Dispose();
             //_player = null;
             //_webViewInitialized = false;
+            if (_webMessageSubscribed && PlayerWebView.CoreWebView2 is not null)
+            {
+                PlayerWebView.CoreWebView2.WebMessageReceived -= OnWebMessageReceived;
+                _webMessageSubscribed = false;
+            }
             _player?.Clear();
         }
 
@@ -58,6 +105,7 @@ namespace RoomClient.Views.Player
         {
             _playerViewModel = playerViewModel;
             _playerViewModel.PropertyChanged += OnPlayerPropertyChanged;
+            _playerViewModel.JavaScriptCommandRequested += OnJavaScriptCommandRequested;
         }
 
         private void DetachPlayerViewModel()
@@ -68,7 +116,26 @@ namespace RoomClient.Views.Player
             }
 
             _playerViewModel.PropertyChanged -= OnPlayerPropertyChanged;
+            _playerViewModel.JavaScriptCommandRequested -= OnJavaScriptCommandRequested;
             _playerViewModel = null;
+        }
+
+        private async void OnJavaScriptCommandRequested(object? sender, string js)
+        {
+            if (!_webViewInitialized || PlayerWebView.CoreWebView2 is null)
+            {
+                LogWebViewIssue($"Skip JS command, WebView belum siap: {js}");
+                return;
+            }
+
+            try
+            {
+                await PlayerWebView.CoreWebView2.ExecuteScriptAsync(js);
+            }
+            catch (Exception ex)
+            {
+                LogWebViewIssue($"ExecuteScriptAsync gagal untuk '{js}': {ex}");
+            }
         }
 
         private async void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -152,6 +219,7 @@ namespace RoomClient.Views.Player
                 LogWebViewIssue($"WebView2 initialized OK. Runtime version: {_sharedEnvironment.BrowserVersionString}");
 
                 _player ??= new WebViewPlayer(PlayerWebView);
+                SubscribeWebMessages();
                 _webViewInitialized = true;
             }
             catch (Exception ex)

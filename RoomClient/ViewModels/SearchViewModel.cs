@@ -94,12 +94,19 @@ namespace RoomClient.ViewModels
         [RelayCommand]
         private async Task SearchAsync()
         {
-            if (Player is null || !Player.IsSessionActive)
+            if (Player is null)
             {
                 StatusMessage = "Sesi belum dimulai — tidak dapat mencari lagu.";
                 Results.Clear();
                 return;
             }
+
+            //if (Player is null || !Player.IsSessionActive)
+            //{
+            //    StatusMessage = "Sesi belum dimulai — tidak dapat mencari lagu.";
+            //    Results.Clear();
+            //    return;
+            //}
 
             if (IsBusy)
             {

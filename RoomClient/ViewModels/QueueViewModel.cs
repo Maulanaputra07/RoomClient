@@ -34,10 +34,10 @@ namespace RoomClient.ViewModels
                 return;
             }
 
-            if (!Player.IsSessionActive)
-            {
-                return;
-            }
+            //if (!Player.IsSessionActive)
+            //{
+            //    return;
+            //}
 
             await Player.PlayAsync(queueSong.Song);
             Items.Remove(queueSong);

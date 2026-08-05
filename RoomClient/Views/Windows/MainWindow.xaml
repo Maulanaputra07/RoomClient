@@ -311,7 +311,7 @@
                             Background="#FF1E293B"
                             Foreground="White"
                             BorderThickness="0"
-                            Command="{Binding Player.PlayPauseCommand}"
+                            Command="{Binding Player.TogglePlayPauseCommand}"
                             ToolTip="Play/Pause">
                         <Button.Style>
                             <Style TargetType="Button">
