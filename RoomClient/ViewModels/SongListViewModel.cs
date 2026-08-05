@@ -29,8 +29,17 @@ namespace RoomClient.ViewModels
             //    return;
             //}
 
-            await Player.PlayAsync(song);
-            Player.IsFullScreen = true;
+            if (song.VideoId == Player.CurrentSong?.VideoId)
+            {
+                // Lagu yang sama sedang aktif -> toggle pause/resume, bukan restart
+                await Player.TogglePlayPauseCommand.ExecuteAsync(null);
+            }
+            else
+            {
+                // Lagu berbeda -> mainkan dari awal
+                await Player.PlayAsync(song);
+                Player.IsFullScreen = true;
+            }
         }
 
         [RelayCommand]

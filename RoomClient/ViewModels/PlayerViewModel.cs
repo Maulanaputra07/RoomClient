@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
+using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -15,6 +16,10 @@ namespace RoomClient.ViewModels
         private DateTimeOffset? _sessionEndTime;
         private DispatcherTimer? _countdownTimer;
         public event EventHandler<string>? JavaScriptCommandRequested;
+
+        private readonly Stack<Song> _history = new();
+        public Func<bool>? HasNextSong { get; set; }
+        public Func<Song?>? DequeueNextSong { get; set; }
 
         // Source Generator otomatis mendefinisikan properti PascalCase untuk setiap field di bawah
         [ObservableProperty]
@@ -134,6 +139,12 @@ namespace RoomClient.ViewModels
 
             if (string.IsNullOrWhiteSpace(song.VideoId)) return;
 
+            if (CurrentSong is not null && CurrentSong.VideoId != song.VideoId)
+            {
+                _history.Push(CurrentSong);
+                PreviousCommand.NotifyCanExecuteChanged();
+            }
+
             NowPlaying = "Memuat...";
 
             try
@@ -172,21 +183,25 @@ namespace RoomClient.ViewModels
             await _playerService.StopAsync();
         }
 
-        private bool CanGoNext() => CurrentSong is not null;
-        private bool CanGoPrevious() => CurrentSong is not null;
+        private bool CanGoNext() => HasNextSong?.Invoke() ?? false;
+        private bool CanGoPrevious() => _history.Count > 0;
 
         [RelayCommand(CanExecute = nameof(CanGoNext))]
         private async Task NextAsync()
         {
-            if (CurrentSong is null) return;
-            await _playerService.NextAsync();
+            var nextSong = DequeueNextSong?.Invoke();
+            if (nextSong is not null)
+            {
+                await PlayAsync(nextSong);
+            }
         }
 
         [RelayCommand(CanExecute = nameof(CanGoPrevious))]
         private async Task PreviousAsync()
         {
-            if (CurrentSong is null) return;
-            await _playerService.PreviousAsync();
+            if (_history.Count == 0) return;
+            var prevSong = _history.Pop();
+            await PlayAsync(prevSong);
         }
 
         private void OnCurrentSongChanged(object? sender, Song? song)

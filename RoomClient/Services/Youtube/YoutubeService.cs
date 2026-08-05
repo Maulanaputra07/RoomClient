@@ -99,7 +99,7 @@ namespace RoomClient.Services.Youtube
         </style>
         </head>
         <body>
-        <video id='player' autoplay controls playsinline src='{escapedUrl}'></video>
+        <video id='player' autoplay controls controlsList=""nodownload noremoteplayback nofullscreen"" playsinline src='{escapedUrl}'></video>
         <script>
           var player = document.getElementById('player');
           player.addEventListener('ended', function() {{

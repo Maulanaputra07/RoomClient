@@ -14,7 +14,20 @@ namespace RoomClient.ViewModels
     {
         public ObservableCollection<QueueSong> Items { get; } = new();
 
-        public PlayerViewModel? Player { get; set; }
+        private PlayerViewModel? _player;
+        public PlayerViewModel? Player { 
+            get => _player;
+            set
+            {
+                _player = value;
+                if (_player is not null)
+                {
+                    _player.HasNextSong = () => Items.Count > 0;
+                    _player.DequeueNextSong = DequeueNext;
+                    Items.CollectionChanged += (_, __) => _player.NextCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
 
         public void Add(Song song, string requestedBy = "Guest")
         {
@@ -24,6 +37,16 @@ namespace RoomClient.ViewModels
                 RequestedBy = requestedBy,
                 RequestedAt = DateTime.Now
             });
+        }
+
+        public Song? DequeueNext()
+        {
+            var next = Items.FirstOrDefault();
+            if (next is not null)
+            {
+                Items.Remove(next);
+            }
+            return next?.Song;
         }
 
         [RelayCommand]

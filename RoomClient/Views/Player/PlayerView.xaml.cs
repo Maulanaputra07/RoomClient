@@ -35,13 +35,16 @@ namespace RoomClient.Views.Player
 
             PlayerWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
             _webMessageSubscribed = true;
+            LogWebViewIssue("WebMessageReceived subscribed.");
         }
 
         private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             try
             {
-                var json = e.WebMessageAsJson; // atau e.TryGetWebMessageAsString() tergantung format post
+                var json = e.TryGetWebMessageAsString();
+                LogWebViewIssue($"WebMessage diterima: {json}");
+
                 using var doc = JsonDocument.Parse(json);
                 var type = doc.RootElement.GetProperty("type").GetString();
 
@@ -54,6 +57,7 @@ namespace RoomClient.Views.Player
                         _playerViewModel?.NotifyWebViewPlaybackState(PlaybackState.Paused);
                         break;
                     case "ended":
+                        LogWebViewIssue("Event ended diterima, memanggil NotifySongEnded.");
                         _playerViewModel?.NotifySongEnded();
                         break;
                     case "error":
@@ -189,6 +193,10 @@ namespace RoomClient.Views.Player
             if (PlayerWebView.CoreWebView2 is not null)
             {
                 _player ??= new WebViewPlayer(PlayerWebView);
+                #if DEBUG
+                PlayerWebView.CoreWebView2.OpenDevToolsWindow();
+                #endif
+                SubscribeWebMessages();
                 _webViewInitialized = true;
                 LogWebViewIssue("CoreWebView2 already existed on control, reused it.");
                 return;
