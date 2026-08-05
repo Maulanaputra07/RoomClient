@@ -32,6 +32,9 @@ namespace RoomClient.ViewModels
         private bool _isSessionActive;
 
         [ObservableProperty]
+        private bool _isSessionExpired;
+
+        [ObservableProperty]
         private string _remainingTimeText = string.Empty;
 
         [ObservableProperty]
@@ -42,6 +45,9 @@ namespace RoomClient.ViewModels
 
         [ObservableProperty]
         private Song? _currentSong;
+
+        [ObservableProperty]
+        private bool _showOneMinuteWarning;
 
         public PlayerViewModel(IPlayerService playerService, IYoutubeService youtubeService)
         {
@@ -72,17 +78,28 @@ namespace RoomClient.ViewModels
 
         public void ActivateSession(DateTimeOffset sessionEndTime)
         {
-            IsSessionActive = true;
             _sessionEndTime = sessionEndTime;
+
+            IsSessionActive = true;
+            IsSessionExpired = false;
+            ShowOneMinuteWarning = false;
+
             StartCountdown();
         }
 
         public void ExtendSession(DateTimeOffset newSessionEndTime)
         {
             _sessionEndTime = newSessionEndTime;
+            IsSessionActive = true;
+            IsSessionExpired = false;
+            ShowOneMinuteWarning = false;
             if (_countdownTimer is null || !_countdownTimer.IsEnabled)
             {
                 StartCountdown();
+            }
+            else
+            {
+                UpdateRemainingTime();
             }
         }
 
@@ -109,33 +126,62 @@ namespace RoomClient.ViewModels
             if (_sessionEndTime is null)
             {
                 RemainingTimeText = string.Empty;
+                ShowOneMinuteWarning = false;
                 return;
             }
 
-            var remaining = _sessionEndTime.Value - DateTimeOffset.Now;
+            var remaining = _sessionEndTime.Value.ToUniversalTime() - DateTimeOffset.UtcNow;
 
-            if (remaining <= TimeSpan.Zero)
+            if (remaining < TimeSpan.FromSeconds(0.5))
             {
                 RemainingTimeText = "00:00";
                 _countdownTimer?.Stop();
+
+                if (IsSessionActive)
+                {
+                    IsSessionExpired = true;
+                }
+
                 IsSessionActive = false;
+                ShowOneMinuteWarning = false;
+
                 NowPlaying = "Sesi telah berakhir";
-                _ = StopAsync();
+                _ = StopPlayerAfterSessionExpiredAsync();
                 return;
             }
+
+            IsSessionActive = true;
+            IsSessionExpired = false;
+
+            ShowOneMinuteWarning = remaining.TotalSeconds <= 60;
 
             RemainingTimeText = remaining.Hours > 0
                 ? remaining.ToString(@"hh\:mm\:ss")
                 : remaining.ToString(@"mm\:ss");
         }
 
+        private async Task StopPlayerAfterSessionExpiredAsync()
+        {
+            PlayerHtml = null;
+
+            try
+            {
+                await _playerService.StopAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Failed to stop player after session expired: {ex.Message}");
+            }
+        }
+
         public async Task PlayAsync(Song song)
         {
-            //if (!IsSessionActive)
-            //{
-            //    NowPlaying = "Sesi belum dimulai";
-            //    return;
-            //}
+            if (!IsSessionActive)
+            {
+                NowPlaying = "Sesi belum dimulai";
+                return;
+            }
 
             if (string.IsNullOrWhiteSpace(song.VideoId)) return;
 
@@ -173,7 +219,12 @@ namespace RoomClient.ViewModels
         {
             NowPlaying = "waiting";
             PlayerHtml = null;
+            if (IsSessionActive)
+            {
+                IsSessionExpired = true;
+            }
             IsSessionActive = false;
+            ShowOneMinuteWarning = false;
 
             if (_countdownTimer != null)
             {

@@ -354,6 +354,243 @@
             </StackPanel>
         </Border>
 
+        <Border x:Name="OneMinuteWarningAlert"
+        Padding="20,14"
+        Background="#E6DC2626"
+        CornerRadius="16"
+        Panel.ZIndex="800"
+        IsHitTestVisible="False">
+
+            <Border.Style>
+                <Style TargetType="Border">
+                    <!-- Position Default (Kiri Bawah) -->
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="VerticalAlignment" Value="Bottom"/>
+                    <Setter Property="Margin" Value="24,0,0,28"/>
+                    <Setter Property="Visibility" Value="Collapsed"/>
+
+                    <Style.Triggers>
+
+                        <!-- Tampilkan ketika sisa waktu <= 1 menit -->
+                        <DataTrigger Binding="{Binding Player.ShowOneMinuteWarning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+
+                        <!-- Sembunyikan ketika RegisterOverlay aktif -->
+                        <DataTrigger Binding="{Binding ElementName=RegisterOverlay, Path=Visibility}" Value="Visible">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+
+                        <!-- Ubah posisi ke Kanan Atas saat Fullscreen -->
+                        <DataTrigger Binding="{Binding Player.IsFullScreen}" Value="True">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                            <Setter Property="Margin" Value="0,28,24,0"/>
+                        </DataTrigger>
+
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="24"
+                          ShadowDepth="0"
+                          Color="Black"
+                          Opacity="0.4"/>
+            </Border.Effect>
+
+            <StackPanel Orientation="Horizontal">
+
+                <TextBlock Text="&#xE7BA;"
+                   FontFamily="Segoe MDL2 Assets"
+                   FontSize="20"
+                   Foreground="White"
+                   VerticalAlignment="Center"
+                   Margin="0,0,12,0"/>
+
+                <StackPanel VerticalAlignment="Center">
+
+                    <TextBlock Text="Sisa Waktu 1 Menit"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="White"/>
+
+                    <TextBlock Text="Sesi karaoke akan segera berakhir"
+                       FontSize="12"
+                       Foreground="#FFFFE4E4"/>
+
+                </StackPanel>
+
+            </StackPanel>
+        </Border>
+
+        <Border x:Name="SessionExpiredPopup"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Width="420"
+        Padding="28"
+        Background="#F01E293B"
+        CornerRadius="20"
+        Panel.ZIndex="90"
+        IsHitTestVisible="True">
+
+            <Border.Style>
+                <Style TargetType="Border">
+                    <!-- Default: Sembunyi jika sesi aktif -->
+                    <Setter Property="Visibility" Value="Collapsed"/>
+
+                    <Style.Triggers>
+                        <!-- Tampilkan popup jika IsSessionActive = False (Belum Ada Sesi OR Sesi Expired) -->
+                        <DataTrigger Binding="{Binding Player.IsSessionActive}" Value="False">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="32"
+                          ShadowDepth="0"
+                          Color="Black"
+                          Opacity="0.55"/>
+            </Border.Effect>
+
+            <StackPanel>
+
+                <!-- Ikon Lingkaran (Warna berubah sesuai status) -->
+                <Border Width="56"
+                Height="56"
+                CornerRadius="28"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,18">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <!-- Default saat baru launch (Biru Slate/Info) -->
+                            <Setter Property="Background" Value="#FF1E3A8A"/>
+                            <Style.Triggers>
+                                <!-- Merah saat expired -->
+                                <DataTrigger Binding="{Binding Player.IsSessionExpired}" Value="True">
+                                    <Setter Property="Background" Value="#FF7F1D1D"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <TextBlock FontFamily="Segoe MDL2 Assets"
+                       FontSize="24"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <!-- Default Ikon Jam (Belum Aktif) -->
+                                <Setter Property="Text" Value="&#xE825;"/>
+                                <Style.Triggers>
+                                    <!-- Ikon Peringatan (Expired) -->
+                                    <DataTrigger Binding="{Binding Player.IsSessionExpired}" Value="True">
+                                        <Setter Property="Text" Value="&#xE783;"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Border>
+
+                <!-- Judul Popup -->
+                <TextBlock FontSize="22"
+                   FontWeight="Bold"
+                   Foreground="White"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <!-- Default Judul -->
+                            <Setter Property="Text" Value="Sesi Belum Aktif"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Player.IsSessionExpired}" Value="True">
+                                    <Setter Property="Text" Value="Sesi Telah Berakhir"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Subtitle / Deskripsi -->
+                <TextBlock FontSize="14"
+                   Foreground="#FFCBD5E1"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   Margin="0,8,0,24">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <!-- Default Subtitle -->
+                            <Setter Property="Text" Value="Belum ada waktu sesi karaoke yang berjalan."/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Player.IsSessionExpired}" Value="True">
+                                    <Setter Property="Text" Value="Waktu sesi karaoke Anda telah habis."/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Badge Sisa Waktu (Hanya muncul jika sesi expired) -->
+                <Border Background="#FF0F172A"
+                CornerRadius="12"
+                Padding="14,10"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,20">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <!-- Badge waktu hanya ditampilkan ketika sesi sudah pernah berjalan dan expired -->
+                                <DataTrigger Binding="{Binding Player.IsSessionExpired}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Waktu"
+                           FontSize="12"
+                           Foreground="#FF94A3B8"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0"/>
+
+                        <TextBlock Text="{Binding Player.RemainingTimeText}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="#FFF87171"
+                           VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Pesan Petunjuk / Footer -->
+                <TextBlock FontSize="12"
+                   Foreground="#FF94A3B8"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <!-- Default Pesan -->
+                            <Setter Property="Text" Value="Silakan hubungi kasir atau petugas untuk mengaktifkan sesi."/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Player.IsSessionExpired}" Value="True">
+                                    <Setter Property="Text" Value="Silakan hubungi petugas untuk memperpanjang sesi."/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+            </StackPanel>
+        </Border>
+
+
+
         <!-- Register Overlay -->
         <register:RegisterView
             x:Name="RegisterOverlay"

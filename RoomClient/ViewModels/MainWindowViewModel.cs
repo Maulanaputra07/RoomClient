@@ -55,7 +55,18 @@ namespace RoomClient.ViewModels
 
         private void OnSessionExpired(object? sender, EventArgs e)
         {
-            Player.StopAsync();
+            // Cek dulu apakah sesi sedang aktif sebelum mematikan player
+            if (Player.IsSessionActive)
+            {
+                _ = Player.StopAsync();
+            }
+            else
+            {
+                // Jika aplikasi baru buka & belum ada sesi, cukup pastikan state awal bersih tanpa set IsSessionExpired
+                Player.IsSessionActive = false;
+                Player.IsSessionExpired = false;
+            }
+
             SongList.Results.Clear();
             Queue.Items.Clear();
             Search.Reset();
