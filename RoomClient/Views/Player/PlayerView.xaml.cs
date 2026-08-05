@@ -17,6 +17,7 @@ namespace RoomClient.Views.Player
         private WebViewPlayer? _player;
         private bool _webViewInitialized;
         private bool _webMessageSubscribed;
+        private string? _lastLoadedHtml;
 
         public PlayerView()
         {
@@ -87,7 +88,7 @@ namespace RoomClient.Views.Player
                 PlayerWebView.CoreWebView2.WebMessageReceived -= OnWebMessageReceived;
                 _webMessageSubscribed = false;
             }
-            _player?.Clear();
+            //_player?.Clear();
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -156,14 +157,24 @@ namespace RoomClient.Views.Player
                 return;
             }
 
-            if (_playerViewModel?.PlayerHtml is { Length: > 0 } html)
-            {
-                _player?.LoadHtml(html);
-            }
-            else
+            var html = _playerViewModel?.PlayerHtml;
+
+            if (string.IsNullOrEmpty(html))
             {
                 _player?.Clear();
+                _lastLoadedHtml = null;
+                return;
             }
+
+            if (html == _lastLoadedHtml)
+            {
+                // HTML sama seperti yang sudah dimuat (misal Loaded terpicu ulang karena
+                // reparenting saat toggle fullscreen) — skip supaya video tidak restart.
+                return;
+            }
+
+            _player?.LoadHtml(html);
+            _lastLoadedHtml = html;
         }
 
         private async Task EnsureWebViewAsync()

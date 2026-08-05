@@ -77,7 +77,6 @@ namespace RoomClient.Services.Youtube
         }
 
 
-
         public string BuildPlayerHtml(string streamUrl)
         {
             var escapedUrl = EscapeJavaScriptString(streamUrl);
@@ -90,6 +89,13 @@ namespace RoomClient.Services.Youtube
         <style>
           html,body{{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:black;}}
           video{{width:100%;height:100%;object-fit:contain;}}
+          video::-webkit-media-controls-fullscreen-button {{ display: none !important; }}
+          video::-webkit-media-controls-overflow-button {{ display: none !important; }}
+          video::-webkit-media-controls-mute-button,
+          video::-webkit-media-controls-volume-slider,
+          video::-webkit-media-controls-volume-slider-container {{ display: none !important; }}
+          video::-webkit-media-controls-toggle-closed-captions-button {{ display: none !important; }}
+          video::-webkit-media-controls-picture-in-picture-button {{ display: none !important; }}
         </style>
         </head>
         <body>
