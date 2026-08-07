@@ -10,7 +10,6 @@ namespace RoomClient.Config
     {
         public string YoutubeAPI { get; set; } = string.Empty;
         public string WebSocket { get; set; } = string.Empty;
-
         public string ServerAPI { get; set; } = string.Empty;
     }
 }

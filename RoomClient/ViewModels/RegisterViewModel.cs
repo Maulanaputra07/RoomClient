@@ -83,7 +83,7 @@ namespace RoomClient.ViewModels
 
                 if (success)
                 {
-                    _config.isRegistered = true;
+                    _config.IsRegistered = true;
                     _configService.Save(_config);
                     StatusMessage = "Register berhasil.";
                     RegisterSucceeded?.Invoke(this, EventArgs.Empty);

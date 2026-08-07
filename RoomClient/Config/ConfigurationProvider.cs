@@ -17,7 +17,7 @@ namespace RoomClient.Config
         {
             Configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("Appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("AppSettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
             ApiSettings = new ApiSettings();

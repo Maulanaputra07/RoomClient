@@ -15,7 +15,7 @@ namespace RoomClient.Services.Api
         {
             _httpClient = httpClient;
 
-            var baseUrl = configService.Config.ApiSettings.ServerAPI;
+            var baseUrl = ConfigurationProvider.ApiSettings.ServerAPI;
             _httpClient.BaseAddress = new Uri(baseUrl);
         }
 

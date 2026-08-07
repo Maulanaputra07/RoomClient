@@ -21,14 +21,8 @@ using Wpf.Ui.Controls;
 
 namespace RoomClient.Views.Windows
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : FluentWindow
     {
-        private bool _songListCollapsed;
-        private bool _queueCollapsed;
-
         private bool _isPlayerFullScreen;
 
         [DllImport("user32.dll")]
@@ -39,8 +33,6 @@ namespace RoomClient.Views.Windows
 
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
-
-        private int _exitSequenceStep = 0;
 
         private DispatcherTimer? _overlayHideTimer;
 
@@ -251,7 +243,7 @@ namespace RoomClient.Views.Windows
                 };
             }
 
-            if (!config.isRegistered)
+            if (!config.IsRegistered)
             {
                 var registerViewModel = App.Services.GetRequiredService<RegisterViewModel>();
                 registerViewModel.RegisterSucceeded += (s, args) =>

@@ -42,7 +42,7 @@ namespace RoomClient.Services.Configuration
             var newConfig = new AppConfig
             {
                 DeviceId = Guid.NewGuid().ToString(),
-                isRegistered = false
+                IsRegistered = false
             };
 
             Save(newConfig);
@@ -59,6 +59,7 @@ namespace RoomClient.Services.Configuration
 
             var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(ConfigPath, json);
+            Config = config;
         }
     }
 }

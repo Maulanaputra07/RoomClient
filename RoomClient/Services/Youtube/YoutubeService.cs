@@ -18,7 +18,7 @@ namespace RoomClient.Services.Youtube
         {
             _httpClient = httpClient;
 
-            var baseUrl = configService.Config.ApiSettings.YoutubeAPI;
+            var baseUrl = ConfigurationProvider.ApiSettings.YoutubeAPI;
             _httpClient.BaseAddress = new Uri(baseUrl);
         }
 
