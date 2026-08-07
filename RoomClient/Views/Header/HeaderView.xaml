@@ -8,8 +8,8 @@
              d:DesignHeight="120"
              d:DesignWidth="1200">
     <UserControl.Resources>
-        <helpers:BoolToSessionStatusTextConverter x:Key="StatusTextConverter" />
         <helpers:BoolToSessionStatusBrushConverter x:Key="StatusBrushConverter" />
+        <helpers:BoolToSessionStatusTextConverter x:Key="StatusTextConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </UserControl.Resources>
     <Grid>
@@ -70,6 +70,7 @@
                     <Button Width="38"
                             Height="38"
                             Command="{Binding Search.SearchByVoiceCommand}"
+                            Visibility="{Binding Search.IsVoiceSearchEnabled, Converter={StaticResource BoolToVisibilityConverter}}"
                             ToolTip="Cari dengan Suara">
                         <Button.Style>
                             <Style TargetType="Button">

@@ -1,14 +1,15 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NAudio.Wave;
 using RoomClient.Core.Interfaces;
 using RoomClient.Services.Api;
 using RoomClient.Services.Configuration;
 using RoomClient.Services.Player;
 using RoomClient.Services.Queue;
 using RoomClient.Services.SignalR;
+#if VOICE_SEARCH
 using RoomClient.Services.Voice;
+#endif
 using RoomClient.Services.Youtube;
 using RoomClient.ViewModels;
 using RoomClient.Views.Windows;
@@ -64,11 +65,13 @@ namespace RoomClient
 
                 services.AddSingleton<ISignalRService, SignalRService>();
 
-                services.AddSingleton<IMicrophoneService, MicrophoneService>();
+#if VOICE_SEARCH
 
-                services.AddSingleton<WhisperService>();
+services.AddSingleton<IMicrophoneService, MicrophoneService>();
+services.AddSingleton<WhisperService>();
+services.AddSingleton<IVoiceSearchService, VoiceSearchService>();
 
-                services.AddSingleton<IVoiceSearchService, VoiceSearchService>();
+#endif
 
             }).Build();
 

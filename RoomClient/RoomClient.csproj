@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+	  <PlatformTarget>x64</PlatformTarget>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>wpfui-icon.ico</ApplicationIcon>
     <UseWPF>true</UseWPF>
@@ -10,30 +11,42 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+	<PropertyGroup Condition="'$(VoiceSearchEnabled)' == 'true'">
+		<DefineConstants>$(DefineConstants);VOICE_SEARCH</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(VoiceSearchEnabled)' != 'true'">
+		<Compile Remove="Services\Voice\**\*.cs" />
+		<EmbeddedResource Remove="Services\Voice\**\*" />
+		<None Remove="Services\Voice\**\*" />
+		<Page Remove="Services\Voice\**\*" />
+	</ItemGroup>
+
   <ItemGroup>
-    <Content Include="Models\ggml-small.bin">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Models\ggml-small.bin">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="wpfui-icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-    <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="SocketIOClient" Version="4.0.4" />
     <PackageReference Include="Tools.InnoSetup" Version="7.0.2" />
-    <PackageReference Include="Whisper.net" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.AllRuntimes" Version="1.9.1" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
     <PackageReference Include="WPF-UI" Version="4.3.0" />
     <PackageReference Include="WPF-UI.DependencyInjection" Version="4.3.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
+
+	<ItemGroup Condition="'$(VoiceSearchEnabled)' == 'true'">
+		<Content Include="Models\ggml-small.bin">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+
+		<PackageReference Include="NAudio" Version="2.3.0" />
+		<PackageReference Include="Whisper.net" Version="1.9.1" />
+		<PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+	</ItemGroup>
 
   <ItemGroup>
     <None Remove="Assets\wpfui-icon-256.png" />
@@ -53,6 +66,7 @@
     </None>
     <None Update="AppSettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 

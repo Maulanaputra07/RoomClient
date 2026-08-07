@@ -9,7 +9,7 @@ using System.Windows.Media;
 
 namespace RoomClient.Helpers
 {
-    internal class BoolToSessionStatusTextConverter : IValueConverter
+    public class BoolToSessionStatusTextConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {

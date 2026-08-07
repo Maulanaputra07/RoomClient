@@ -17,6 +17,7 @@
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     Loaded="OnLoaded"
+    Topmost="True"
     PreviewKeyDown="OnPreviewKeyDown">
 
     <Grid Background="#FF08111F"
@@ -69,8 +70,18 @@
                     </Grid.Style>
 
                     <Border x:Name="PlayerContainer"
-            Background="#FF0F172A"
-            CornerRadius="16">
+                        Background="#FF0F172A"
+                        CornerRadius="16">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Player.IsSessionActive}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
                         <player:PlayerView x:Name="PlayerViewControl"/>
                     </Border>
 

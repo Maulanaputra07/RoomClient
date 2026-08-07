@@ -89,6 +89,8 @@ namespace RoomClient.Views.Windows
             }
         }
 
+
+
         private void ShowTaskbar()
         {
             var taskbarHandle = FindWindow("Shell_TrayWnd", null);

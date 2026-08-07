@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,19 +9,26 @@ using CommunityToolkit.Mvvm.Input;
 using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
 using System.Collections.ObjectModel;
+using RoomClient.Config;
 
 namespace RoomClient.ViewModels
 {
     public partial class SearchViewModel : ObservableObject
     {
         private readonly IYoutubeService _youtubeService;
+
+#if VOICE_SEARCH
         private readonly IVoiceSearchService _voiceSearchService;
+#endif
+
+        public bool IsVoiceSearchEnabled => FeatureFlags.VoiceSearchEnabled;
 
         private string _searchQuery;
         private bool _isBusy;
         private bool _isListening;
         private string _statusMessage = "Ready";
 
+#if VOICE_SEARCH
         public SearchViewModel(
             IYoutubeService youtubeService,
             IVoiceSearchService voiceSearchService)
@@ -28,7 +36,13 @@ namespace RoomClient.ViewModels
             _youtubeService = youtubeService;
             _voiceSearchService = voiceSearchService;
         }
-
+#else
+        public SearchViewModel(
+            IYoutubeService youtubeService)
+        {
+            _youtubeService = youtubeService;
+        }
+#endif
         public ObservableCollection<Song> Results { get; set; } = new();
 
         public PlayerViewModel? Player { get; set; }
@@ -125,6 +139,7 @@ namespace RoomClient.ViewModels
             }
         }
 
+#if VOICE_SEARCH
         [RelayCommand]
         private async Task SearchByVoiceAsync()
         {
@@ -168,6 +183,8 @@ namespace RoomClient.ViewModels
                 IsBusy = false;
             }
         }
+#endif
+
 
         [RelayCommand]
         private void ToggleFullScreen()
