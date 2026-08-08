@@ -10,10 +10,12 @@ namespace RoomClient.Core.Interfaces
     public interface ISignalRService
     {
         bool IsConnected { get; }
+        bool IsReconnecting { get; }
         event EventHandler? SessionExpired;
         event EventHandler<SessionStartedPayload>? SessionStarted;
         event EventHandler<SessionStartedPayload>? SessionExtended;
         event EventHandler<CurrentRoomPayload>? CurrentRoomReceived;
+        event Action<bool>? ConnectionStateChanged;
 
         Task<bool> ConnectAsync(CancellationToken cancellationToken = default);
 

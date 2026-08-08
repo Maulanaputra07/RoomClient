@@ -8,11 +8,14 @@
              d:DesignHeight="540"
              d:DesignWidth="1200">
     <UserControl.Resources>
-        <helpers:EmptySearchResultConverter x:Key="EmptySearchResultConverter"/>
-        <helpers:SearchResultsVisibilityConverter x:Key="SearchResultsVisibilityConverter" />
+        <helpers:SearchDisplayStateConverter x:Key="SearchDisplayStateConverter"/>
         <helpers:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
         <helpers:SongTitleColorConverter x:Key="SongTitleColorConverter" />
         <helpers:PlayButtonContentConverter x:Key="PlayButtonContentConverter"/>
+        
+        <helpers:EmptySearchResultConverter x:Key="EmptySearchResultConverter"/>
+        <helpers:SearchResultsVisibilityConverter x:Key="SearchResultsVisibilityConverter" />
+        <helpers:InitialSearchStateConverter x:Key="InitialSearchStateConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </UserControl.Resources>
 
@@ -29,13 +32,21 @@
         </DockPanel>
 
         <Grid x:Name="ContentGrid" Grid.Row="1">
-            <!-- Loading state: tampil selama Search.IsBusy = true -->
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20">
-                <StackPanel.Visibility>
-                    <Binding Path="Search.IsBusy" Converter="{StaticResource BoolToVisibilityConverter}" />
-                </StackPanel.Visibility>
 
-                <!-- Path Spinner dengan Trigger IsVisible agar animasi selalu berjalan saat ditampilkan -->
+            <!-- Initial state -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20"
+                Visibility="{Binding Search.DisplayState, Converter={StaticResource SearchDisplayStateConverter}, ConverterParameter=Initial}">
+                <Border Width="48" Height="48" Background="#FF1E293B" CornerRadius="24" HorizontalAlignment="Center" Margin="0,0,0,12">
+                    <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="20" Foreground="#FF64748B" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="Cari Lagu" Foreground="White" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                <TextBlock FontSize="12" Foreground="#FF64748B" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,4,0,0" MaxWidth="260" TextWrapping="Wrap"
+                   Text="Ketik judul lagu atau nama penyanyi untuk mulai mencari." />
+            </StackPanel>
+
+            <!-- Loading state -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20"
+                Visibility="{Binding Search.DisplayState, Converter={StaticResource SearchDisplayStateConverter}, ConverterParameter=Loading}">
                 <Path Width="28" Height="28" Stroke="#FF2563EB" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 14,2 A 12,12 0 0 1 26,14" HorizontalAlignment="Center">
                     <Path.RenderTransform>
                         <RotateTransform CenterX="14" CenterY="14" Angle="0" />
@@ -47,8 +58,8 @@
                                     <Trigger.EnterActions>
                                         <BeginStoryboard Name="SpinAnimation">
                                             <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" 
-                                                                 From="0" To="360" Duration="0:0:0.9" RepeatBehavior="Forever" />
+                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                         From="0" To="360" Duration="0:0:0.9" RepeatBehavior="Forever" />
                                             </Storyboard>
                                         </BeginStoryboard>
                                     </Trigger.EnterActions>
@@ -63,38 +74,23 @@
                 <TextBlock Text="Sedang melakukan pencarian..." Foreground="#FF64748B" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,0" />
             </StackPanel>
 
-            <!-- Empty state: tampil jika user sudah mengetik query, tidak sedang mencari, TAPI hasil pencarian kosong -->
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20">
-                <StackPanel.Visibility>
-                    <MultiBinding Converter="{StaticResource EmptySearchResultConverter}">
-                        <!-- Koreksi: SearchQuery (bukan Query) -->
-                        <Binding Path="Search.SearchQuery" />
-                        <Binding Path="Search.Results.Count" />
-                        <Binding Path="Search.IsBusy" />
-                    </MultiBinding>
-                </StackPanel.Visibility>
-
+            <!-- Empty state -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20"
+                Visibility="{Binding Search.DisplayState, Converter={StaticResource SearchDisplayStateConverter}, ConverterParameter=Empty}">
                 <Border Width="48" Height="48" Background="#FF1E293B" CornerRadius="24" HorizontalAlignment="Center" Margin="0,0,0,12">
                     <TextBlock Text="?" FontSize="20" FontWeight="Bold" Foreground="#FF64748B" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
                 <TextBlock Text="Lagu tidak ditemukan" Foreground="White" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" />
                 <TextBlock FontSize="12" Foreground="#FF64748B" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,4,0,0" MaxWidth="260" TextWrapping="Wrap">
-                    <Run Text="Tidak ada hasil untuk &quot;" />
-                    <!-- Koreksi: SearchQuery (bukan Query) -->
-                    <Run Text="{Binding Search.SearchQuery, Mode=OneWay}" FontWeight="SemiBold" Foreground="#FFCBD5E1" />
-                    <Run Text="&quot;. Coba kata kunci lain." />
+            <Run Text="Tidak ada hasil untuk &quot;" />
+            <Run Text="{Binding Search.SearchQuery, Mode=OneWay}" FontWeight="SemiBold" Foreground="#FFCBD5E1" />
+            <Run Text="&quot;. Coba kata kunci lain." />
                 </TextBlock>
             </StackPanel>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <!--
-                -->
-                <ScrollViewer.Visibility>
-                    <MultiBinding Converter="{StaticResource SearchResultsVisibilityConverter}">
-                        <Binding Path="Search.Results.Count" />
-                        <Binding Path="Search.IsBusy" />
-                    </MultiBinding>
-                </ScrollViewer.Visibility>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          Visibility="{Binding Search.DisplayState, Converter={StaticResource SearchDisplayStateConverter}, ConverterParameter=HasResults}"
+                          >
                 <!-- Tambahkan HorizontalContentAlignment="Stretch" di sini -->
                 <ItemsControl ItemsSource="{Binding Search.Results}" HorizontalContentAlignment="Stretch">
                     <ItemsControl.ItemTemplate>

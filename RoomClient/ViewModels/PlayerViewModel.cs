@@ -177,11 +177,11 @@ namespace RoomClient.ViewModels
 
         public async Task PlayAsync(Song song)
         {
-            if (!IsSessionActive)
-            {
-                NowPlaying = "Sesi belum dimulai";
-                return;
-            }
+            //if (!IsSessionActive)
+            //{
+            //    NowPlaying = "Sesi belum dimulai";
+            //    return;
+            //}
 
             if (string.IsNullOrWhiteSpace(song.VideoId)) return;
 

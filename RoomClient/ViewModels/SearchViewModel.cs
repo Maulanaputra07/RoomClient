@@ -13,6 +13,14 @@ using RoomClient.Config;
 
 namespace RoomClient.ViewModels
 {
+    public enum SearchDisplayState
+    {
+        Initial,
+        Loading,
+        Empty,
+        HasResults
+    }
+
     public partial class SearchViewModel : ObservableObject
     {
         private readonly IYoutubeService _youtubeService;
@@ -26,6 +34,7 @@ namespace RoomClient.ViewModels
         private string _searchQuery;
         private bool _isBusy;
         private bool _isListening;
+        private bool _hasSearched;
         private string _statusMessage = "Ready";
 
 #if VOICE_SEARCH
@@ -35,12 +44,14 @@ namespace RoomClient.ViewModels
         {
             _youtubeService = youtubeService;
             _voiceSearchService = voiceSearchService;
+            Results.CollectionChanged += (s, e) => OnPropertyChanged(nameof(DisplayState));
         }
 #else
         public SearchViewModel(
             IYoutubeService youtubeService)
         {
             _youtubeService = youtubeService;
+            Results.CollectionChanged += (s, e) => OnPropertyChanged(nameof(DisplayState));
         }
 #endif
         public ObservableCollection<Song> Results { get; set; } = new();
@@ -56,13 +67,24 @@ namespace RoomClient.ViewModels
         public string SearchQuery
         {
             get => _searchQuery;
-            set => SetProperty(ref _searchQuery, value);
+            set
+            {
+                if (SetProperty(ref _searchQuery, value))
+                {
+                    _hasSearched = false;
+                    OnPropertyChanged(nameof(DisplayState));
+                }
+            }
         }
 
         public bool IsBusy
         {
             get => _isBusy;
-            set => SetProperty(ref _isBusy, value);
+            set
+            {
+                if (SetProperty(ref _isBusy, value))
+                    OnPropertyChanged(nameof(DisplayState));
+            }
         }
 
         public string StatusMessage
@@ -71,10 +93,22 @@ namespace RoomClient.ViewModels
             set => SetProperty(ref _statusMessage, value);
         }
 
+        public SearchDisplayState DisplayState
+        {
+            get
+            {
+                if (IsBusy) return SearchDisplayState.Loading;
+                if (string.IsNullOrWhiteSpace(SearchQuery) || !_hasSearched) return SearchDisplayState.Initial;
+                return Results.Count == 0 ? SearchDisplayState.Empty : SearchDisplayState.HasResults;
+            }
+        }
+
         public void Reset()
         {
             SearchQuery = string.Empty;
+            _hasSearched = false;
             StatusMessage = "Ready.";
+            OnPropertyChanged(nameof(DisplayState));
         }
 
         private async Task ExecuteSearchAsync()
@@ -95,26 +129,32 @@ namespace RoomClient.ViewModels
                 {
                     Results.Add(song);
                 }
+                _hasSearched = true;
                 StatusMessage = Results.Count > 0
                 ? $"Menemukan {Results.Count} hasil pencarian."
                 : "Tidak menemukan hasil.";
             }
             catch (Exception ex)
             {
+                _hasSearched = true;
                 StatusMessage = $"Pencarian gagal: {ex.Message}";
-            }   
+            }
+            finally
+            {
+                OnPropertyChanged(nameof(DisplayState));
+            }  
         }
 
         [RelayCommand]
         private async Task SearchAsync()
         {
 
-            if (Player is null || !Player.IsSessionActive)
-            {
-                StatusMessage = "Sesi belum dimulai — tidak dapat mencari lagu.";
-                Results.Clear();
-                return;
-            }
+            //if (Player is null || !Player.IsSessionActive)
+            //{
+            //    StatusMessage = "Sesi belum dimulai — tidak dapat mencari lagu.";
+            //    Results.Clear();
+            //    return;
+            //}
 
             if (IsBusy)
             {

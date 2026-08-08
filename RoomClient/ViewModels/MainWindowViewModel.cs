@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
+using System.Windows;
 
 namespace RoomClient.ViewModels
 {
@@ -48,6 +49,16 @@ namespace RoomClient.ViewModels
         public async Task InitializeAsync()
         {
             await Status.LoadRoomsAsync();
+
+            _signalRService.ConnectionStateChanged += connected =>
+            {
+                // event Socket.IO datang dari background thread, marshal ke UI thread
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Status.IsWebSocketConnecting = !connected && _signalRService.IsReconnecting;
+                    Status.IsWebSocketReady = connected;
+                });
+            };
 
             var connected = await _signalRService.ConnectAsync();
             Status.MarkWebSocketEngineReady(connected);

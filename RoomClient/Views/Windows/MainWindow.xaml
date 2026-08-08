@@ -447,14 +447,18 @@
 
             <Border.Style>
                 <Style TargetType="Border">
-                    <!-- Default: Sembunyi jika sesi aktif -->
+                    <!-- Default: Sembunyi -->
                     <Setter Property="Visibility" Value="Collapsed"/>
 
                     <Style.Triggers>
-                        <!-- Tampilkan popup jika IsSessionActive = False (Belum Ada Sesi OR Sesi Expired) -->
-                        <DataTrigger Binding="{Binding Player.IsSessionActive}" Value="False">
+                        <!-- Tampilkan hanya jika session tidak aktif DAN WebSocket sudah ready -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Player.IsSessionActive}" Value="False"/>
+                                <Condition Binding="{Binding Status.IsWebSocketReady}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
                             <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
+                        </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>
             </Border.Style>
@@ -600,7 +604,119 @@
             </StackPanel>
         </Border>
 
+        <Border x:Name="WebSocketDisconnectedPopup"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Width="420"
+        Padding="28"
+        Background="#F01E293B"
+        CornerRadius="20"
+        Panel.ZIndex="95"
+        IsHitTestVisible="True">
 
+            <Border.Style>
+                <Style TargetType="Border">
+                    <!-- Default: sembunyi -->
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <!-- Tampilkan jika WebSocket belum ready (baik sedang connecting maupun gagal) -->
+                        <DataTrigger Binding="{Binding Status.IsWebSocketReady}" Value="False">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="32" ShadowDepth="0" Color="Black" Opacity="0.55"/>
+            </Border.Effect>
+
+            <StackPanel>
+
+                <!-- Ikon lingkaran: biru saat masih mencoba connect, merah kalau retry habis -->
+                <Border Width="56" Height="56" CornerRadius="28"
+                HorizontalAlignment="Center" Margin="0,0,0,18">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#FF1E3A8A"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Status.IsWebSocketConnecting}" Value="False">
+                                    <Setter Property="Background" Value="#FF7F1D1D"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <TextBlock FontFamily="Segoe MDL2 Assets"
+                       FontSize="24"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       x:Name="WebSocketStatusIcon">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <!-- Ikon refresh/sync saat connecting -->
+                                <Setter Property="Text" Value="&#xE895;"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status.IsWebSocketConnecting}" Value="False">
+                                        <!-- Ikon plug terputus saat gagal -->
+                                        <Setter Property="Text" Value="&#xE7BA;"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+
+                        <TextBlock.RenderTransform>
+                            <RotateTransform x:Name="WebSocketIconRotate" CenterX="12" CenterY="12"/>
+                        </TextBlock.RenderTransform>
+
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation
+                                    Storyboard.TargetProperty="RenderTransform.Angle"
+                                    From="0" To="360" Duration="0:0:1.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+                </Border>
+
+                <!-- Judul -->
+                <TextBlock FontSize="22" FontWeight="Bold" Foreground="White"
+                   HorizontalAlignment="Center" TextAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Menghubungkan ke Server..."/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Status.IsWebSocketConnecting}" Value="False">
+                                    <Setter Property="Text" Value="Koneksi Terputus"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Subtitle -->
+                <TextBlock FontSize="14" Foreground="#FFCBD5E1"
+                   HorizontalAlignment="Center" TextAlignment="Center"
+                   TextWrapping="Wrap" Margin="0,8,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Sedang mencoba terhubung ke server. Mohon tunggu sebentar."/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Status.IsWebSocketConnecting}" Value="False">
+                                    <Setter Property="Text" Value="Tidak dapat terhubung ke server setelah beberapa kali percobaan. Periksa koneksi internet Anda."/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+            </StackPanel>
+        </Border>
 
         <!-- Register Overlay -->
         <register:RegisterView

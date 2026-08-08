@@ -14,6 +14,9 @@ namespace RoomClient.Services.SignalR
         public event EventHandler<SessionStartedPayload>? SessionStarted;
         public event EventHandler<SessionStartedPayload>? SessionExtended;
         public event EventHandler<CurrentRoomPayload>? CurrentRoomReceived;
+        public event Action<bool>? ConnectionStateChanged;
+        private bool _isReconnecting;
+        public bool IsReconnecting => _isReconnecting;
 
         private readonly Uri _serverUri;
         private SocketIOClient.SocketIO? _client;
@@ -67,6 +70,9 @@ namespace RoomClient.Services.SignalR
             _client.OnConnected += async (s, e) =>
             {
                 SocketLogger.Log("LIFECYCLE", $"OnConnected fired. Id={_client!.Id}");
+                _isReconnecting = false;
+                ConnectionStateChanged?.Invoke(true);
+
                 try
                 {
                     var config = _configService.LoadCreate();
@@ -87,11 +93,17 @@ namespace RoomClient.Services.SignalR
             };
 
             _client.OnDisconnected += (s, reason) =>
+            {
                 SocketLogger.Log("LIFECYCLE", $"OnDisconnected. Reason={reason}");
+                ConnectionStateChanged?.Invoke(false);
+            };
 
             _client.OnReconnectAttempt += (s, attempt) =>
+            {
                 SocketLogger.Log("LIFECYCLE", $"Reconnect attempt #{attempt}");
-
+                _isReconnecting = true;
+                ConnectionStateChanged?.Invoke(false);
+            };
             _client.OnReconnectError += (s, ex) =>
                 SocketLogger.Log("LIFECYCLE", $"Reconnect error: {ex.Message}");
 

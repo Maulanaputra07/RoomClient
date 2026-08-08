@@ -5,13 +5,19 @@ using System.Collections.ObjectModel;
 
 namespace RoomClient.ViewModels
 {
-    public class StatusViewModel : ObservableObject
+    public partial class StatusViewModel : ObservableObject
     {
         private readonly IApiService _apiService;
         private bool _isLoading;
         private string _statusMessage = "Room data not loaded yet.";
         private string? _errorMessage;
         private Room? _selectedRoom;
+
+        [ObservableProperty]
+        private bool isWebSocketReady;
+
+        [ObservableProperty]
+        private bool isWebSocketConnecting = true;
 
         public StatusViewModel(IApiService apiService)
         {
@@ -112,6 +118,8 @@ namespace RoomClient.ViewModels
 
         public void MarkWebSocketEngineReady(bool connected)
         {
+            IsWebSocketConnecting = false;
+            IsWebSocketReady = connected;
             AddLog(connected
                 ? "WebSocket engine ready on app launch."
                 : "WebSocket engine failed to start on app launch.");

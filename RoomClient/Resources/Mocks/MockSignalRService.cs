@@ -11,10 +11,14 @@ namespace RoomClient.Resources.Mocks
     public class MockSignalRService : ISignalRService
     {
         public event EventHandler<SessionStartedPayload>? SessionStarted;
+        public event Action<bool>? ConnectionStateChanged;
+        private bool _isReconnecting;
         public event EventHandler? SessionExpired;
         public event EventHandler<SessionStartedPayload>? SessionExtended;
         public event EventHandler<CurrentRoomPayload>? CurrentRoomReceived;
         public bool IsConnected => true;
+        public bool IsReconnecting => _isReconnecting;
+
 
         public Task<bool> ConnectAsync(CancellationToken cancellationToken = default)
         {
