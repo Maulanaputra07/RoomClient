@@ -12,7 +12,8 @@
         <helpers:BoolToSessionStatusTextConverter x:Key="StatusTextConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </UserControl.Resources>
-    <Grid>
+
+    <Grid Background="#0F172A">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
@@ -24,7 +25,7 @@
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     Margin="20,0,0,0">
-            <Border Width="48" Height="48" Background="#FF2563EB" CornerRadius="14">
+            <Border Width="48" Height="48" Background="#2563EB" CornerRadius="14">
                 <TextBlock HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            FontSize="20"
@@ -34,7 +35,7 @@
             </Border>
             <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
                 <TextBlock FontSize="22" FontWeight="SemiBold" Foreground="White" Text="Room Client" />
-                <TextBlock FontSize="13" Foreground="#FF94A3B8" Text="Karaoke room control panel" />
+                <TextBlock FontSize="13" Foreground="#94A3B8" Text="Karaoke room control panel" />
             </StackPanel>
         </StackPanel>
 
@@ -54,9 +55,10 @@
                 <TextBox Grid.Column="0"
                          Height="38"
                          Padding="14,8"
-                         Background="#FF111827"
+                         Background="#1E293B"
                          Foreground="White"
-                         BorderBrush="#FF334155"
+                         BorderBrush="#3B82F6"
+                         BorderThickness="1"
                          VerticalContentAlignment="Center"
                          IsEnabled="{Binding Search.IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" 
                          Text="{Binding Search.SearchQuery, UpdateSourceTrigger=PropertyChanged}">
@@ -74,16 +76,16 @@
                             ToolTip="Cari dengan Suara">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Background" Value="#FF111827" />
+                                <Setter Property="Background" Value="#1E293B" />
                                 <Setter Property="Foreground" Value="White" />
-                                <Setter Property="BorderBrush" Value="#FF334155" />
+                                <Setter Property="BorderBrush" Value="#3B82F6" />
                                 <Setter Property="BorderThickness" Value="1" />
                                 <Setter Property="Cursor" Value="Hand" />
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
                                             <Grid x:Name="ButtonRoot" Background="Transparent">
-                                                <!-- Ring Gelombang Merah (Efek Pulsing saat Merekam) -->
+                                                <!-- Ring Gelombang Merah (Pulsing saat Merekam) -->
                                                 <Ellipse x:Name="PulseRing"
                                                          Fill="#EF4444"
                                                          Opacity="0"
@@ -149,31 +151,34 @@
                     </Button>
                 </Grid>
 
-                <!-- Cari Button dengan Loading State -->
+                <!-- Cari Button (Disesuaikan ke Warna Biru Utama) -->
                 <Button Grid.Column="2"
                         Margin="8,0,0,0"
                         Height="38"
                         Command="{Binding Search.SearchCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="Background" Value="#FF7C3AED" />
+                            <Setter Property="Background" Value="#2563EB" />
                             <Setter Property="Foreground" Value="White" />
                             <Setter Property="BorderThickness" Value="0" />
                             <Setter Property="Cursor" Value="Hand" />
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="Button">
-                                        <Border x:Name="Border" Background="#FF7C3AED" CornerRadius="6">
+                                        <Border x:Name="Border" Background="#2563EB" CornerRadius="6">
                                             <TextBlock x:Name="BtnText"
-                   Text="Cari"
-                   Padding="16,0"
-                   Foreground="White"
-                   FontWeight="SemiBold"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+                                                       Text="Cari"
+                                                       Padding="16,0"
+                                                       Foreground="White"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
                                         </Border>
 
                                         <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Border" Property="Background" Value="#1D4ED8" />
+                                            </Trigger>
                                             <DataTrigger Binding="{Binding Search.IsBusy}" Value="True">
                                                 <Setter TargetName="BtnText" Property="Text" Value="Mencari..." />
                                                 <Setter Property="IsEnabled" Value="False"/>
@@ -181,8 +186,8 @@
                                                     <BeginStoryboard x:Name="PulseTextStoryboard">
                                                         <Storyboard RepeatBehavior="Forever" AutoReverse="True">
                                                             <DoubleAnimation Storyboard.TargetName="BtnText"
-                                         Storyboard.TargetProperty="Opacity"
-                                         From="1.0" To="0.3" Duration="0:0:0.6" />
+                                                                             Storyboard.TargetProperty="Opacity"
+                                                                             From="1.0" To="0.3" Duration="0:0:0.6" />
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </DataTrigger.EnterActions>
@@ -211,7 +216,9 @@
             <Border Margin="0,0,10,0"
                     Padding="12,6"
                     CornerRadius="12"
-                    Background="#FF1E293B"
+                    Background="#1E293B"
+                    BorderBrush="#1E3A8A"
+                    BorderThickness="1"
                     VerticalAlignment="Center">
                 <TextBlock FontSize="26"
                            FontWeight="Bold"
@@ -223,7 +230,9 @@
             <!-- Session Status -->
             <Border Padding="12,6"
                     CornerRadius="12"
-                    Background="#FF1E293B"
+                    Background="#1E293B"
+                    BorderBrush="#1E3A8A"
+                    BorderThickness="1"
                     VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="10"

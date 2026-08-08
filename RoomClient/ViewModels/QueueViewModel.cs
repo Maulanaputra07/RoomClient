@@ -22,7 +22,11 @@ namespace RoomClient.ViewModels
                 _player = value;
                 if (_player is not null)
                 {
-                    _player.HasNextSong = () => Items.Count > 0;
+                    _player.HasNextSong = () =>
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[DEBUG] HasNextSong check: Items.Count={Items.Count}, InstanceId={GetHashCode()}");
+                        return Items.Count > 0;
+                    };
                     _player.DequeueNextSong = DequeueNext;
                     Items.CollectionChanged += (_, __) => _player.NextCommand.NotifyCanExecuteChanged();
                 }
@@ -31,6 +35,7 @@ namespace RoomClient.ViewModels
 
         public void Add(Song song, string requestedBy = "Guest")
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Add called. InstanceId={GetHashCode()}, Count before={Items.Count}");
             Items.Add(new QueueSong
             {
                 Song = song,

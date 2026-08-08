@@ -177,9 +177,11 @@ namespace RoomClient.ViewModels
 
         public async Task PlayAsync(Song song)
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] PlayAsync dipanggil untuk: {song.Title}, IsSessionActive={IsSessionActive}");
             if (!IsSessionActive)
             {
                 NowPlaying = "Sesi belum dimulai";
+                System.Diagnostics.Debug.WriteLine("[DEBUG] PlayAsync di-abort: IsSessionActive false");
                 return;
             }
 
@@ -198,6 +200,7 @@ namespace RoomClient.ViewModels
                 PlayerHtml = null;
 
                 var streamUrl = await _youtubeService.GetStreamUrlAsync(song.VideoId);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] streamUrl hasil: {(string.IsNullOrEmpty(streamUrl) ? "KOSONG/NULL" : "OK")}");
 
                 if (!IsSessionActive)
                 {
@@ -213,10 +216,13 @@ namespace RoomClient.ViewModels
                 }
 
                 PlayerHtml = _youtubeService.BuildPlayerHtml(streamUrl);
+                System.Diagnostics.Debug.WriteLine("[DEBUG] PlayerHtml di-set, memanggil _playerService.PlayAsync");
                 await _playerService.PlayAsync(song);
+                System.Diagnostics.Debug.WriteLine("[DEBUG] _playerService.PlayAsync selesai");
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] EXCEPTION di PlayAsync: {ex}");
                 NowPlaying = $"Gagal memutar: {ex.Message}";
             }
         }
@@ -248,7 +254,9 @@ namespace RoomClient.ViewModels
         [RelayCommand(CanExecute = nameof(CanGoNext))]
         private async Task NextAsync()
         {
+            System.Diagnostics.Debug.WriteLine("[DEBUG] NextAsync dipanggil");
             var nextSong = DequeueNextSong?.Invoke();
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] DequeueNextSong hasil: {nextSong?.Title ?? "NULL"}");
             if (nextSong is not null)
             {
                 await PlayAsync(nextSong);
