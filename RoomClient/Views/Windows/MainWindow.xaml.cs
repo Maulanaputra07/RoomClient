@@ -72,7 +72,32 @@ namespace RoomClient.Views.Windows
                 e.Handled = true;
                 ExitApplication();
             }
+
+#if DEBUG
+            // DEBUG ONLY: Ctrl+Alt+Shift+T untuk simulasi session aktif + websocket ready
+            if (e.Key == Key.T &&
+                (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control &&
+                (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt &&
+                (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                e.Handled = true;
+                SimulateReadyState();
+            }
+#endif
         }
+
+#if DEBUG
+        private void SimulateReadyState()
+        {
+            if (DataContext is not MainWindowViewModel vm) return;
+
+            vm.Status.IsWebSocketConnecting = false;
+            vm.Status.IsWebSocketReady = true;
+            vm.Player.ActivateSession(DateTimeOffset.UtcNow.AddMinutes(30));
+
+            vm.Status.AddLog("[DEBUG] Simulated: WebSocket ready + session active (30 min)");
+        }
+#endif
 
         private void ExitApplication()
         {

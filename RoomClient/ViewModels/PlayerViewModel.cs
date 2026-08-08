@@ -35,7 +35,7 @@ namespace RoomClient.ViewModels
         private bool _isSessionExpired;
 
         [ObservableProperty]
-        private string _remainingTimeText = string.Empty;
+        private string _remainingTimeText = "00:00";
 
         [ObservableProperty]
         private bool _isFullScreen;
@@ -125,7 +125,7 @@ namespace RoomClient.ViewModels
         {
             if (_sessionEndTime is null)
             {
-                RemainingTimeText = string.Empty;
+                RemainingTimeText = "00:00";
                 ShowOneMinuteWarning = false;
                 return;
             }
@@ -177,11 +177,11 @@ namespace RoomClient.ViewModels
 
         public async Task PlayAsync(Song song)
         {
-            //if (!IsSessionActive)
-            //{
-            //    NowPlaying = "Sesi belum dimulai";
-            //    return;
-            //}
+            if (!IsSessionActive)
+            {
+                NowPlaying = "Sesi belum dimulai";
+                return;
+            }
 
             if (string.IsNullOrWhiteSpace(song.VideoId)) return;
 
@@ -219,6 +219,7 @@ namespace RoomClient.ViewModels
         {
             NowPlaying = "waiting";
             PlayerHtml = null;
+            RemainingTimeText = "00:00";
             if (IsSessionActive)
             {
                 IsSessionExpired = true;

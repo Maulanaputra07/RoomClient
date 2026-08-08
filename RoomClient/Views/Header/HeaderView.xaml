@@ -216,7 +216,7 @@
                 <TextBlock FontSize="26"
                            FontWeight="Bold"
                            Foreground="#FFFACC15"
-                           Text="{Binding Player.RemainingTimeText, FallbackValue=--:--}"
+                           Text="{Binding Player.RemainingTimeText, FallbackValue=00:00, TargetNullValue=00:00}"
                            VerticalAlignment="Center" />
             </Border>
 
