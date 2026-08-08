@@ -17,7 +17,7 @@
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     Loaded="OnLoaded"
-    Topmost="True"
+    Topmost="False"
     PreviewKeyDown="OnPreviewKeyDown">
 
     <Grid Background="#FF08111F"
@@ -133,10 +133,13 @@
                                               IsChecked="True"
                                               Padding="12,6"
                                               Margin="0,0,6,0"
-                                              Background="#FF1E293B"
                                               Foreground="White"
                                               BorderThickness="0"
-                                              Click="SongListTabButton_Click"/>
+                                              Click="SongListTabButton_Click" Cursor="">
+                                    <ToggleButton.Background>
+                                        <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.HotTrackColorKey}}"/>
+                                    </ToggleButton.Background>
+                                </ToggleButton>
 
                                 <ToggleButton x:Name="QueueTabButton"
                                               Content="Antrean"

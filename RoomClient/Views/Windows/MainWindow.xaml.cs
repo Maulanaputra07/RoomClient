@@ -192,7 +192,8 @@ namespace RoomClient.Views.Windows
             QueueView.Visibility = Visibility.Collapsed;
             SongListTabButton.IsChecked = true;
             QueueTabButton.IsChecked = false;
-            SongListTabButton.Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x29, 0x3B));
+            SongListTabButton.Background = new SolidColorBrush(Color.FromRgb(0x25, 0x63, 0xEB));
+            SongListTabButton.Foreground = Brushes.White;
             QueueTabButton.Background = Brushes.Transparent;
         }
 
@@ -202,7 +203,8 @@ namespace RoomClient.Views.Windows
             QueueView.Visibility = Visibility.Visible;
             QueueTabButton.IsChecked = true;
             SongListTabButton.IsChecked = false;
-            QueueTabButton.Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x29, 0x3B));
+            QueueTabButton.Background = new SolidColorBrush(Color.FromRgb(0x25, 0x63, 0xEB));
+            QueueTabButton.Foreground = Brushes.White;
             SongListTabButton.Background = Brushes.Transparent;
         }
 

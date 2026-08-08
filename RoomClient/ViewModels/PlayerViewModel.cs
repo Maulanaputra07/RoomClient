@@ -199,6 +199,13 @@ namespace RoomClient.ViewModels
 
                 var streamUrl = await _youtubeService.GetStreamUrlAsync(song.VideoId);
 
+                if (!IsSessionActive)
+                {
+                    NowPlaying = "Sesi telah berakhir";
+                    return;
+                }
+
+
                 if (string.IsNullOrWhiteSpace(streamUrl))
                 {
                     NowPlaying = "Gagal memuat stream";
