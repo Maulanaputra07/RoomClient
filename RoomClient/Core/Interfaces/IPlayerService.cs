@@ -1,4 +1,5 @@
 ﻿using RoomClient.Core.Models;
+using RoomClient.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,8 +35,9 @@ namespace RoomClient.Core.Interfaces
         Task PauseAsync();
         Task StopAsync();
         Task SeekAsync(TimeSpan position);
-
         Task NextAsync();
         Task PreviousAsync();
+        Task SetVolumeAsync(double volume);
+        string GetApplyVolumeScript();
     }
 }

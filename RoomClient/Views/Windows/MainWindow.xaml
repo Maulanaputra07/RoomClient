@@ -12,6 +12,7 @@
     xmlns:songList="clr-namespace:RoomClient.Views.SongList"
     xmlns:status="clr-namespace:RoomClient.Views.Status"
     xmlns:register="clr-namespace:RoomClient.Views.Register"
+    xmlns:helpers="clr-namespace:RoomClient.Helpers"
     mc:Ignorable="d"
     Title="Room Client - Karaoke Room"
     ResizeMode="NoResize"
@@ -19,6 +20,10 @@
     Loaded="OnLoaded"
     Topmost="True"
     PreviewKeyDown="OnPreviewKeyDown">
+    <ui:FluentWindow.Resources>
+        <helpers:MuteIconConverter x:Key="MuteIconConverter" />
+    </ui:FluentWindow.Resources>
+    
 
     <Grid Background="#FF08111F"
           HorizontalAlignment="Stretch"
@@ -210,6 +215,45 @@
                 <!-- WebView2 di-reparent ke sini saat fullscreen -->
                 <ContentControl x:Name="PlayerFullScreenContent"/>
 
+                <!--
+                <Button x:Name="CloseFullScreenButton"
+                Width="40" Height="40"
+                Margin="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Click="ExitFullScreenButton_Click"
+                ToolTip="Keluar dari Fullscreen">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="#B30F172A"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Cursor" Value="Hand"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Bg"
+                                        Background="{TemplateBinding Background}"
+                                        CornerRadius="20">
+                                            <TextBlock Text="✕"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bg" Property="Background" Value="#EF4444"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                -->
+
                 <!-- Floating "Now Playing" bar, muncul saat mouse bergerak -->
                 <Border x:Name="NowPlayingOverlay"
                         VerticalAlignment="Bottom"
@@ -349,6 +393,26 @@
                             BorderThickness="0"
                             Command="{Binding Player.NextCommand}"
                             ToolTip="Next"/>
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    Margin="12,0,0,0">
+
+                                    <ui:Button
+                        Icon="{Binding Player.Volume, Converter={StaticResource MuteIconConverter}}"
+                        Command="{Binding Player.ToggleMuteCommand}"
+                        Appearance="Transparent" />
+
+                                    <Slider
+                        Width="100"
+                        Minimum="0"
+                        Maximum="100"
+                        Value="{Binding Player.Volume, Mode=TwoWay}"
+                        VerticalAlignment="Center"
+                        Margin="4,0,0,0" />
+
                 </StackPanel>
 
                 <!-- Fullscreen CTA: tetap lewat code-behind, konsisten dgn ExitFullScreenButton -->

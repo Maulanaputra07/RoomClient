@@ -60,6 +60,12 @@ namespace RoomClient.Views.Player
                         LogWebViewIssue("Event ended diterima, memanggil NotifySongEnded.");
                         _playerViewModel?.NotifySongEnded();
                         break;
+                    case "exitFullscreen":
+                        if (_playerViewModel is not null)
+                        {
+                            _playerViewModel.IsFullScreen = false;
+                        }
+                        break;
                     case "error":
                         LogWebViewIssue("Video playback error dari WebView.");
                         break;
@@ -179,6 +185,19 @@ namespace RoomClient.Views.Player
 
             _player?.LoadHtml(html);
             _lastLoadedHtml = html;
+
+            if (_playerViewModel is not null && PlayerWebView.CoreWebView2 is not null)
+            {
+                try
+                {
+                    var applyVolumeJs = _playerViewModel.GetApplyVolumeScript();
+                    await PlayerWebView.CoreWebView2.ExecuteScriptAsync(applyVolumeJs);
+                }
+                catch (Exception ex)
+                {
+                    LogWebViewIssue($"Gagal reapply volume: {ex}");
+                }
+            }
         }
 
         private async Task EnsureWebViewAsync()
@@ -187,6 +206,7 @@ namespace RoomClient.Views.Player
 
             if (_webViewInitialized)
             {
+                SubscribeWebMessages();
                 return;
             }
 

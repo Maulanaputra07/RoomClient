@@ -1,6 +1,7 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using System;
+using System.Globalization;
 
 namespace RoomClient.Helpers
 {
@@ -8,6 +9,7 @@ namespace RoomClient.Helpers
     {
         private readonly WebView2 _webView;
         private bool _disposed;
+        private double _pendingVolume = 1.0;
 
         public WebViewPlayer(WebView2 webView)
         {
@@ -77,6 +79,32 @@ namespace RoomClient.Helpers
             }
         }
 
+        public async Task ExecuteScriptAsync(string script)
+        {
+            if (_disposed || _webView.CoreWebView2 is null || string.IsNullOrWhiteSpace(script))
+            {
+                return;
+            }
+
+            try
+            {
+                await _webView.CoreWebView2.ExecuteScriptAsync(script);
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
+            {
+                // WebView2 sedang dalam proses navigasi/dispose — abaikan dengan aman
+            }
+        }
+
+        public async Task SetVolumeAsync(double volumePercent)
+        {
+            var normalized = Math.Clamp(volumePercent / 100.0, 0, 1);
+            _pendingVolume = normalized;
+
+            var script = $"if (document.querySelector('video')) {{ document.querySelector('video').volume = {normalized.ToString(CultureInfo.InvariantCulture)}; }}";
+            await ExecuteScriptAsync(script);
+        }
+
         private void CoreWebView2_WebResourceRequested(
             object? sender,
             CoreWebView2WebResourceRequestedEventArgs e)
@@ -92,10 +120,17 @@ namespace RoomClient.Helpers
             }
         }
 
-        private void CoreWebView2_NavigationCompleted(
+        private async void CoreWebView2_NavigationCompleted(
             object? sender,
             CoreWebView2NavigationCompletedEventArgs e)
         {
+            if (!e.IsSuccess || _disposed)
+            {
+                return;
+            }
+
+            var script = $"if (document.querySelector('video')) {{ document.querySelector('video').volume = {_pendingVolume.ToString(CultureInfo.InvariantCulture)}; }}";
+            await ExecuteScriptAsync(script);
         }
 
         public void Dispose()

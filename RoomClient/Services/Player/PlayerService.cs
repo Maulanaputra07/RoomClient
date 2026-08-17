@@ -1,12 +1,13 @@
 ﻿using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
+using RoomClient.Helpers;
 using RoomClient.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RoomClient.ViewModels;
 
 namespace RoomClient.Services.Player
 {
@@ -16,9 +17,8 @@ namespace RoomClient.Services.Player
         private PlaybackState _state = PlaybackState.Stopped;
         private TimeSpan _currentPosition = TimeSpan.Zero;
         private TimeSpan _duration = TimeSpan.Zero;
+        private double _volume = 100;
         public event EventHandler<string>? JavaScriptCommandRequested;
-
-        private readonly PlayerViewModel _playerViewModel;
 
         public Song? CurrentSong
         {
@@ -69,14 +69,13 @@ namespace RoomClient.Services.Player
         public event EventHandler<PlaybackState>? PlaybackStateChanged;
         public event EventHandler<TimeSpan>? PositionChanged;
 
+        // DIUBAH: constructor kosong (parameterless), tidak lagi minta WebViewPlayer dari DI
         public PlayerService()
         {
         }
 
         public void UpdatePlaybackStateFromWebView(PlaybackState state)
         {
-            // Langsung set State, TIDAK invoke JavaScriptCommandRequested,
-            // karena perubahan ini datang DARI video, bukan mau dikirim KE video
             State = state;
         }
 
@@ -84,8 +83,6 @@ namespace RoomClient.Services.Player
         {
             CurrentSong = song;
             State = PlaybackState.Playing;
-
-            // Masukkan logika pemutaran engine media Anda di sini
             return Task.CompletedTask;
         }
 
@@ -127,14 +124,30 @@ namespace RoomClient.Services.Player
 
         public Task NextAsync()
         {
-            // Ambil lagu berikutnya dari antrean lalu panggil PlayAsync
             return Task.CompletedTask;
         }
 
         public Task PreviousAsync()
         {
-            // Ambil lagu sebelumnya dari antrean lalu panggil PlayAsync
             return Task.CompletedTask;
+        }
+
+        // DIUBAH: guard null karena _webViewPlayer mungkin belum di-attach
+        public Task SetVolumeAsync(double volume)
+        {
+            _volume = Math.Clamp(volume, 0, 100);
+            var normalized = (_volume / 100.0).ToString(CultureInfo.InvariantCulture);
+
+            JavaScriptCommandRequested?.Invoke(this,
+                $"if(typeof player!=='undefined'){{player.volume={normalized};}}");
+
+            return Task.CompletedTask;
+        }
+
+        public string GetApplyVolumeScript()
+        {
+            var normalized = (_volume / 100.0).ToString(CultureInfo.InvariantCulture);
+            return $"if(typeof player!=='undefined'){{player.volume={normalized};}}";
         }
     }
 }

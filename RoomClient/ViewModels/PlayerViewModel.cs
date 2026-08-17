@@ -21,6 +21,8 @@ namespace RoomClient.ViewModels
         public Func<bool>? HasNextSong { get; set; }
         public Func<Song?>? DequeueNextSong { get; set; }
 
+        public string GetApplyVolumeScript() => _playerService.GetApplyVolumeScript();
+
         // Source Generator otomatis mendefinisikan properti PascalCase untuk setiap field di bawah
         [ObservableProperty]
         private string _nowPlaying = "Tidak ada lagu yang diputar";
@@ -48,6 +50,20 @@ namespace RoomClient.ViewModels
 
         [ObservableProperty]
         private bool _showOneMinuteWarning;
+
+        [ObservableProperty]
+        private double _volume = 100;
+
+        [ObservableProperty]
+        private bool _isMuted = false;
+
+        private double _previousVolume = 100;
+
+        partial void OnVolumeChanged(double value)
+        {
+            _playerService.SetVolumeAsync(value);
+            IsMuted = value == 0;
+        }
 
         public PlayerViewModel(IPlayerService playerService, IYoutubeService youtubeService)
         {
@@ -228,6 +244,20 @@ namespace RoomClient.ViewModels
         }
 
         [RelayCommand]
+        private void ToggleMute()
+        {
+            if (IsMuted)
+            {
+                Volume = _previousVolume == 0 ? 50 : _previousVolume;
+            }
+            else
+            {
+                _previousVolume = Volume;
+                Volume = 0;
+            }
+        }
+
+        [RelayCommand]
         public async Task StopAsync()
         {
             NowPlaying = "waiting";
@@ -270,6 +300,7 @@ namespace RoomClient.ViewModels
             var prevSong = _history.Pop();
             await PlayAsync(prevSong);
         }
+
 
         private void OnCurrentSongChanged(object? sender, Song? song)
         {
