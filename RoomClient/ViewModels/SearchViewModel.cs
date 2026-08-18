@@ -69,11 +69,7 @@ namespace RoomClient.ViewModels
             get => _searchQuery;
             set
             {
-                if (SetProperty(ref _searchQuery, value))
-                {
-                    _hasSearched = false;
-                    OnPropertyChanged(nameof(DisplayState));
-                }
+                SetProperty(ref _searchQuery, value);
             }
         }
 
@@ -98,7 +94,7 @@ namespace RoomClient.ViewModels
             get
             {
                 if (IsBusy) return SearchDisplayState.Loading;
-                if (string.IsNullOrWhiteSpace(SearchQuery) || !_hasSearched) return SearchDisplayState.Initial;
+                if (!_hasSearched) return SearchDisplayState.Initial;
                 return Results.Count == 0 ? SearchDisplayState.Empty : SearchDisplayState.HasResults;
             }
         }
@@ -130,9 +126,18 @@ namespace RoomClient.ViewModels
                     Results.Add(song);
                 }
                 _hasSearched = true;
-                StatusMessage = Results.Count > 0
-                ? $"Menemukan {Results.Count} hasil pencarian."
-                : "Tidak menemukan hasil.";
+                if (Results.Count > 0)
+                {
+                    StatusMessage = $"Menemukan {Results.Count} hasil pencarian.";
+
+                    // Reset input pencarian tanpa memicu _hasSearched = false
+                    _searchQuery = string.Empty;
+                    OnPropertyChanged(nameof(SearchQuery));
+                }
+                else
+                {
+                    StatusMessage = "Tidak menemukan hasil.";
+                }
             }
             catch (Exception ex)
             {

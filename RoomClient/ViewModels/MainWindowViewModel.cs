@@ -15,6 +15,7 @@ namespace RoomClient.ViewModels
             SongListViewModel songListViewModel,
             QueueViewModel queueViewModel,
             StatusViewModel statusViewModel,
+            CategoryViewModel categoryViewModel,
             ISignalRService signalRService)
         {
             Search = searchViewModel;
@@ -22,12 +23,14 @@ namespace RoomClient.ViewModels
             SongList = songListViewModel;
             Queue = queueViewModel;
             Status = statusViewModel;
+            Category = categoryViewModel;
             _signalRService = signalRService;
 
             Search.Results = SongList.Results;
             Search.Player = Player;
             SongList.Player = Player;
             SongList.Queue = Queue;
+            Category.SongList = SongList;
             Queue.Player = Player;
 
             _signalRService.SessionStarted += OnSessionStarted;
@@ -45,6 +48,8 @@ namespace RoomClient.ViewModels
         public QueueViewModel Queue { get; }
 
         public StatusViewModel Status { get; }
+
+        public CategoryViewModel Category { get; }
 
         public async Task InitializeAsync()
         {

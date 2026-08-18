@@ -26,6 +26,53 @@ namespace RoomClient.Views.Header
         public HeaderView()
         {
             InitializeComponent();
+            Loaded += HeaderView_Loaded;
+            Unloaded += HeaderView_Unloaded;
+        }
+
+        private void HeaderView_Loaded(object sender, RoutedEventArgs e)
+        {
+            var window = Window.GetWindow(this);
+            if (window != null)
+            {
+                window.PreviewMouseDown += Window_PreviewMouseDown;
+            }
+        }
+
+        private void HeaderView_Unloaded(object sender, RoutedEventArgs e)
+        {
+            var window = Window.GetWindow(this);
+            if (window != null)
+            {
+                window.PreviewMouseDown -= Window_PreviewMouseDown;
+            }
+        }
+
+        private void SearchTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter || e.Key == Key.Return)
+            {
+                KeyboardPopup.IsOpen = false;
+                Keyboard.ClearFocus(); // Hilangkan fokus dari SearchTextBox
+            }
+        }
+
+        private void Window_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!KeyboardPopup.IsOpen) return;
+
+            var hitElement = e.OriginalSource as DependencyObject;
+
+            // Jika klik terjadi di dalam SearchTextBox, isi Popup, atau tombol Toggle Keyboard, jangan tutup
+            if (IsElementInside(hitElement, SearchTextBox) ||
+                IsElementInside(hitElement, KeyboardPopup.Child))
+            {
+                return;
+            }
+
+            // Klik berada di luar area yang diizinkan -> tutup popup dan lepaskan fokus
+            KeyboardPopup.IsOpen = false;
+            Keyboard.ClearFocus();
         }
 
         private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
@@ -61,13 +108,17 @@ namespace RoomClient.Views.Header
             var focused = Keyboard.FocusedElement as DependencyObject;
             if (focused is null) return false;
 
-            // Telusuri visual tree ke atas untuk mencari apakah elemen yang di-focus
-            // merupakan child dari KeyboardPopup
-            var parent = focused;
-            while (parent is not null)
+            return IsElementInside(focused, KeyboardPopup.Child);
+        }
+
+        private bool IsElementInside(DependencyObject element, DependencyObject container)
+        {
+            if (element == null || container == null) return false;
+
+            var parent = element;
+            while (parent != null)
             {
-                if (parent == KeyboardPopup.Child)
-                    return true;
+                if (parent == container) return true;
                 parent = VisualTreeHelper.GetParent(parent);
             }
 
@@ -86,6 +137,7 @@ namespace RoomClient.Views.Header
         private void CariButton_Click(object sender, RoutedEventArgs e)
         {
             KeyboardPopup.IsOpen = false;
+            Keyboard.ClearFocus();
         }
     }
 }

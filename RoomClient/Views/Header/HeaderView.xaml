@@ -68,14 +68,18 @@
                  IsEnabled="{Binding Search.IsBusy, Converter={StaticResource InverseBooleanConverter}}" 
                  Text="{Binding Search.SearchQuery, UpdateSourceTrigger=PropertyChanged}"
                  GotFocus="SearchTextBox_GotFocus"
-                 LostFocus="SearchTextBox_LostFocus">
+                 LostFocus="SearchTextBox_LostFocus"
+                 KeyDown="SearchTextBox_KeyDown">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Return" Command="{Binding Search.SearchCommand}" />
                     </TextBox.InputBindings>
                 </TextBox>
 
                 <!-- Toggle Keyboard Button -->
-                <Button Grid.Column="1"
+                <!--
+                <Button 
+                x:Name="ToggleKeyboardButton"
+                Grid.Column="1"
                 Width="38" Height="38"
                 Margin="8,0,0,0"
                 Click="ToggleKeyboard_Click"
@@ -91,6 +95,7 @@
                         </Style>
                     </Button.Style>
                 </Button>
+                -->
 
                 <!-- Voice Search Button -->
                 <Grid Grid.Column="2" Margin="8,0,0,0">

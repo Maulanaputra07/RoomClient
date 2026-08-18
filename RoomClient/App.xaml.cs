@@ -51,6 +51,8 @@ namespace RoomClient
 
                 services.AddSingleton<StatusViewModel>();
 
+                services.AddSingleton<CategoryViewModel>();
+
                 services.AddSingleton<IConfigService, ConfigurationService>();
 
                 services.AddTransient<RegisterViewModel>();

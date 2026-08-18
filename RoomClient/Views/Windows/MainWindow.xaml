@@ -11,6 +11,7 @@
     xmlns:search="clr-namespace:RoomClient.Views.Search"
     xmlns:songList="clr-namespace:RoomClient.Views.SongList"
     xmlns:status="clr-namespace:RoomClient.Views.Status"
+    xmlns:category="clr-namespace:RoomClient.Views.Category"
     xmlns:register="clr-namespace:RoomClient.Views.Register"
     xmlns:helpers="clr-namespace:RoomClient.Helpers"
     mc:Ignorable="d"
@@ -18,7 +19,7 @@
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     Loaded="OnLoaded"
-    Topmost="True"
+    Topmost="False"
     PreviewKeyDown="OnPreviewKeyDown">
     <ui:FluentWindow.Resources>
         <helpers:MuteIconConverter x:Key="MuteIconConverter" />
@@ -35,6 +36,7 @@
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -47,8 +49,16 @@
                 <header:HeaderView/>
             </Border>
 
+            <Border Grid.Row="1"
+                Margin="12,0,12,10"
+                Padding="12,8"
+                Background="#FF0F172A"
+                CornerRadius="16">
+                <category:CategoryBadgeView DataContext="{Binding Category}"/>
+            </Border>
+
             <!-- Main Content: Player (kiri) + Sidebar tab SongList/Queue (kanan, bisa ditutup) -->
-            <Grid Grid.Row="1"
+            <Grid Grid.Row="2"
                   Margin="12,0,12,12">
 
                 <Grid.ColumnDefinitions>

@@ -22,6 +22,40 @@ namespace RoomClient.Services.Youtube
             _httpClient.BaseAddress = new Uri(baseUrl);
         }
 
+        public async Task<List<Song>> GetByCategoryAsync(string categorySlug)
+        {
+            if (string.IsNullOrWhiteSpace(categorySlug))
+            {
+                return [];
+            }
+
+            var url = $"/category/{Uri.EscapeDataString(categorySlug)}";
+
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<YoutubeSearchResponse>(url);
+
+                if (response is not { Success: true } || response.Data.Count == 0)
+                {
+                    return [];
+                }
+
+                return response.Data.Select(item => new Song
+                {
+                    VideoId = item.VideoId,
+                    Title = item.Title,
+                    Artist = item.Channel,
+                    Duration = TimeSpan.FromSeconds(item.DurationSeconds),
+                    Thumbnail = item.Thumbnail,
+                    ViewCount = item.ViewCount
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Gagal memuat kategori: {ex.Message}", ex);
+            }
+        }
+
         public async Task<List<Song>> SearchAsync(string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))

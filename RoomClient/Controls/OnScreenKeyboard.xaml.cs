@@ -29,7 +29,7 @@ namespace RoomClient.Controls
 
         public string InputText
         {
-            get => (string)GetValue(InputTextProperty);
+            get => (string)GetValue(InputTextProperty) ?? string.Empty;
             set => SetValue(InputTextProperty, value);
         }
 
@@ -55,17 +55,25 @@ namespace RoomClient.Controls
                     Style = (Style)FindResource("KeyButtonStyle"),
                     Tag = key
                 };
-                btn.Click += (s, e) => InputText += ((Button)s).Tag.ToString();
+                btn.Click += (s, e) => AppendText(((Button)s).Tag.ToString());
                 target.Children.Add(btn);
             }
         }
 
-        private void Space_Click(object sender, RoutedEventArgs e) => InputText += " ";
+        private void AppendText(string text)
+        {
+            InputText = (InputText ?? string.Empty) + text;
+        }
+
+        private void Space_Click(object sender, RoutedEventArgs e) => AppendText(" ");
 
         private void Backspace_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(InputText))
-                InputText = InputText.Substring(0, InputText.Length - 1);
+            var current = InputText ?? string.Empty;
+            if (current.Length > 0)
+            {
+                InputText = current.Substring(0, current.Length - 1);
+            }
         }
 
         private void Clear_Click(object sender, RoutedEventArgs e) => InputText = string.Empty;
