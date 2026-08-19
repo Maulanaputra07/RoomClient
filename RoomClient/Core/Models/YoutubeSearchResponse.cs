@@ -35,5 +35,11 @@ namespace RoomClient.Core.Models
 
         [JsonPropertyName("viewCount")]
         public long ViewCount { get; set; }
+
+        [JsonPropertyName("source")]
+        public string Source { get; set; } = "youtube";
+
+        [JsonPropertyName("streamUrl")]
+        public string? StreamUrl { get; set; }
     }
 }

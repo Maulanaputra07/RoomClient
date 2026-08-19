@@ -6,8 +6,15 @@ using System.Threading.Tasks;
 
 namespace RoomClient.Core.Models
 {
+    public enum SongSource
+    {
+        Youtube,
+        Database
+    }
     public class Song
     {
+        public SongSource Source { get; set; } = SongSource.Youtube;
+        public string? DirectStreamUrl { get; set; }
         public required string Title { get; set; } = "";
 
         public string? Artist { get; set; } = "";

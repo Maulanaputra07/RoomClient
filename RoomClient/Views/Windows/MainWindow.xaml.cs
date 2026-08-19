@@ -93,9 +93,9 @@ namespace RoomClient.Views.Windows
 
             vm.Status.IsWebSocketConnecting = false;
             vm.Status.IsWebSocketReady = true;
-            vm.Player.ActivateSession(DateTimeOffset.UtcNow.AddMinutes(30));
+            vm.Player.ActivateSession(DateTimeOffset.UtcNow.AddMinutes(02));
 
-            vm.Status.AddLog("[DEBUG] Simulated: WebSocket ready + session active (30 min)");
+            vm.Status.AddLog("[DEBUG] Simulated: WebSocket ready + session active (2 min)");
         }
 #endif
 

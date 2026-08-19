@@ -16,6 +16,7 @@ namespace RoomClient.ViewModels
         private DateTimeOffset? _sessionEndTime;
         private DispatcherTimer? _countdownTimer;
         public event EventHandler<string>? JavaScriptCommandRequested;
+        public event EventHandler? SessionFullyExpired;
 
         private readonly Stack<Song> _history = new();
         public Func<bool>? HasNextSong { get; set; }
@@ -58,6 +59,7 @@ namespace RoomClient.ViewModels
         private bool _isMuted = false;
 
         private double _previousVolume = 100;
+        private bool _isSessionExpiredPending;
 
         partial void OnVolumeChanged(double value)
         {
@@ -94,6 +96,7 @@ namespace RoomClient.ViewModels
 
         public void ActivateSession(DateTimeOffset sessionEndTime)
         {
+            _isSessionExpiredPending = false;
             _sessionEndTime = sessionEndTime;
 
             IsSessionActive = true;
@@ -105,6 +108,7 @@ namespace RoomClient.ViewModels
 
         public void ExtendSession(DateTimeOffset newSessionEndTime)
         {
+            _isSessionExpiredPending = false;
             _sessionEndTime = newSessionEndTime;
             IsSessionActive = true;
             IsSessionExpired = false;
@@ -152,17 +156,7 @@ namespace RoomClient.ViewModels
             {
                 RemainingTimeText = "00:00";
                 _countdownTimer?.Stop();
-
-                if (IsSessionActive)
-                {
-                    IsSessionExpired = true;
-                }
-
-                IsSessionActive = false;
-                ShowOneMinuteWarning = false;
-
-                NowPlaying = "Sesi telah berakhir";
-                _ = StopPlayerAfterSessionExpiredAsync();
+                ExpireSession(); // DIUBAH — dari logic langsung stop, sekarang lewat method terpusat
                 return;
             }
 
@@ -174,6 +168,43 @@ namespace RoomClient.ViewModels
             RemainingTimeText = remaining.Hours > 0
                 ? remaining.ToString(@"hh\:mm\:ss")
                 : remaining.ToString(@"mm\:ss");
+        }
+
+        public void ExpireSession()
+        {
+            if (IsSessionExpired) return; // sudah expired sebelumnya, hindari trigger dobel
+
+            var isCurrentlyPlaying = CurrentSong is not null && !string.IsNullOrEmpty(PlayerHtml);
+
+            if (isCurrentlyPlaying)
+            {
+                // Grace period: biarkan lagu selesai dulu.
+                // IsSessionActive TETAP true supaya video terus jalan; popup baru muncul setelah lagu selesai.
+                _isSessionExpiredPending = true;
+                NextCommand.NotifyCanExecuteChanged();
+                PreviousCommand.NotifyCanExecuteChanged();
+            }
+            else
+            {
+                // Tidak ada lagu sedang diputar — stop langsung seperti perilaku sebelumnya
+                FinalizeSessionExpiry();
+            }
+        }
+
+        private void FinalizeSessionExpiry()
+        {
+            _isSessionExpiredPending = false;
+
+            if (IsSessionActive)
+            {
+                IsSessionExpired = true;
+            }
+            IsSessionActive = false;
+            ShowOneMinuteWarning = false;
+            NowPlaying = "Sesi telah berakhir";
+
+            _ = StopPlayerAfterSessionExpiredAsync();
+            SessionFullyExpired?.Invoke(this, EventArgs.Empty);
         }
 
         private async Task StopPlayerAfterSessionExpiredAsync()
@@ -201,7 +232,17 @@ namespace RoomClient.ViewModels
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(song.VideoId)) return;
+            if (_isSessionExpiredPending)
+            {
+                System.Diagnostics.Debug.WriteLine("[DEBUG] PlayAsync di-abort: sesi dalam grace period (menyelesaikan lagu terakhir)");
+                return;
+            }
+
+            var hasValidIdentifier = song.Source == SongSource.Database
+                ? !string.IsNullOrWhiteSpace(song.DirectStreamUrl)
+                : !string.IsNullOrWhiteSpace(song.VideoId);
+
+            if (!hasValidIdentifier) return;
 
             if (CurrentSong is not null && CurrentSong.VideoId != song.VideoId)
             {
@@ -215,7 +256,9 @@ namespace RoomClient.ViewModels
             {
                 PlayerHtml = null;
 
-                var streamUrl = await _youtubeService.GetStreamUrlAsync(song.VideoId);
+                string? streamUrl = song.Source == SongSource.Database
+                     ? song.DirectStreamUrl
+                     : await _youtubeService.GetStreamUrlAsync(song.VideoId);
                 System.Diagnostics.Debug.WriteLine($"[DEBUG] streamUrl hasil: {(string.IsNullOrEmpty(streamUrl) ? "KOSONG/NULL" : "OK")}");
 
                 if (!IsSessionActive)
@@ -260,6 +303,7 @@ namespace RoomClient.ViewModels
         [RelayCommand]
         public async Task StopAsync()
         {
+            _isSessionExpiredPending = false;
             NowPlaying = "waiting";
             PlayerHtml = null;
             RemainingTimeText = "00:00";
@@ -278,8 +322,8 @@ namespace RoomClient.ViewModels
             await _playerService.StopAsync();
         }
 
-        private bool CanGoNext() => HasNextSong?.Invoke() ?? false;
-        private bool CanGoPrevious() => _history.Count > 0;
+        private bool CanGoNext() => !_isSessionExpiredPending && (HasNextSong?.Invoke() ?? false); // DIUBAH
+        private bool CanGoPrevious() => !_isSessionExpiredPending && _history.Count > 0;
 
         [RelayCommand(CanExecute = nameof(CanGoNext))]
         private async Task NextAsync()
@@ -338,6 +382,11 @@ namespace RoomClient.ViewModels
 
         public void NotifySongEnded()
         {
+            if (_isSessionExpiredPending)
+            {
+                FinalizeSessionExpiry();
+                return;
+            }
             if (NextCommand.CanExecute(null))
                 NextCommand.Execute(null);
             else

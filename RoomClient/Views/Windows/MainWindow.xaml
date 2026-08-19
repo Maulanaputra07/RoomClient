@@ -225,44 +225,33 @@
                 <!-- WebView2 di-reparent ke sini saat fullscreen -->
                 <ContentControl x:Name="PlayerFullScreenContent"/>
 
-                <!--
-                <Button x:Name="CloseFullScreenButton"
-                Width="40" Height="40"
-                Margin="0"
-                HorizontalAlignment="Right"
+                <Grid x:Name="FullscreenSessionOverlay"
+              Panel.ZIndex="100"
+              IsHitTestVisible="False">
+
+                    <TextBlock
+                Text="{Binding Player.NowPlaying}"
+                HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                Click="ExitFullScreenButton_Click"
-                ToolTip="Keluar dari Fullscreen">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="#B30F172A"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Cursor" Value="Hand"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="Bg"
-                                        Background="{TemplateBinding Background}"
-                                        CornerRadius="20">
-                                            <TextBlock Text="✕"
-                                               FontSize="16"
-                                               FontWeight="Bold"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Bg" Property="Background" Value="#EF4444"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
-                </Button>
-                -->
+                Margin="0,32,0,0"
+                FontSize="22"
+                FontWeight="SemiBold"
+                Foreground="White"
+                TextAlignment="Center"
+                TextTrimming="CharacterEllipsis"
+                MaxWidth="700">
+
+                        <TextBlock.Effect>
+                            <DropShadowEffect
+                        BlurRadius="12"
+                        ShadowDepth="0"
+                        Color="Black"
+                        Opacity="0.8"/>
+                        </TextBlock.Effect>
+
+                    </TextBlock>
+
+                </Grid>
 
                 <!-- Floating "Now Playing" bar, muncul saat mouse bergerak -->
                 <Border x:Name="NowPlayingOverlay"
@@ -443,73 +432,202 @@
         </Border>
 
         <Border x:Name="OneMinuteWarningAlert"
-        Padding="20,14"
-        Background="#E6DC2626"
-        CornerRadius="16"
         Panel.ZIndex="800"
         IsHitTestVisible="False">
 
             <Border.Style>
                 <Style TargetType="Border">
-                    <!-- Position Default (Kiri Bawah) -->
-                    <Setter Property="HorizontalAlignment" Value="Left"/>
-                    <Setter Property="VerticalAlignment" Value="Bottom"/>
-                    <Setter Property="Margin" Value="24,0,0,28"/>
-                    <Setter Property="Visibility" Value="Collapsed"/>
+
+                    <!-- =========================
+                 NORMAL MODE
+                 ========================= -->
+
+                    <Setter Property="HorizontalAlignment"
+                    Value="Left"/>
+
+                    <Setter Property="VerticalAlignment"
+                    Value="Bottom"/>
+
+                    <Setter Property="Margin"
+                    Value="24,0,0,28"/>
+
+                    <Setter Property="Padding"
+                    Value="20,14"/>
+
+                    <Setter Property="Background"
+                    Value="#E6DC2626"/>
+
+                    <Setter Property="CornerRadius"
+                    Value="16"/>
+
+                    <Setter Property="Visibility"
+                    Value="Collapsed"/>
 
                     <Style.Triggers>
 
-                        <!-- Tampilkan ketika sisa waktu <= 1 menit -->
-                        <DataTrigger Binding="{Binding Player.ShowOneMinuteWarning}" Value="True">
-                            <Setter Property="Visibility" Value="Visible"/>
+                        <!-- Warning aktif -->
+                        <DataTrigger Binding="{Binding Player.ShowOneMinuteWarning}"
+                             Value="True">
+                            <Setter Property="Visibility"
+                            Value="Visible"/>
                         </DataTrigger>
 
-                        <!-- Sembunyikan ketika RegisterOverlay aktif -->
-                        <DataTrigger Binding="{Binding ElementName=RegisterOverlay, Path=Visibility}" Value="Visible">
-                            <Setter Property="Visibility" Value="Collapsed"/>
+                        <!-- Register aktif -->
+                        <DataTrigger Binding="{Binding ElementName=RegisterOverlay,
+                                                Path=Visibility}"
+                             Value="Visible">
+                            <Setter Property="Visibility"
+                            Value="Collapsed"/>
                         </DataTrigger>
 
-                        <!-- Ubah posisi ke Kanan Atas saat Fullscreen -->
-                        <DataTrigger Binding="{Binding Player.IsFullScreen}" Value="True">
-                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                            <Setter Property="VerticalAlignment" Value="Top"/>
-                            <Setter Property="Margin" Value="0,28,24,0"/>
+                        <!-- =========================
+                     FULLSCREEN MODE
+                     ========================= -->
+
+                        <DataTrigger Binding="{Binding Player.IsFullScreen}"
+                             Value="True">
+
+                            <Setter Property="HorizontalAlignment"
+                            Value="Right"/>
+
+                            <Setter Property="VerticalAlignment"
+                            Value="Top"/>
+
+                            <Setter Property="Margin"
+                            Value="0,0,24,0"/>
+
+                            <Setter Property="Padding"
+                            Value="0"/>
+
+                            <Setter Property="Background"
+                            Value="Transparent"/>
+
+                            <Setter Property="CornerRadius"
+                            Value="0"/>
+
                         </DataTrigger>
 
                     </Style.Triggers>
                 </Style>
             </Border.Style>
 
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="24"
-                          ShadowDepth="0"
-                          Color="Black"
-                          Opacity="0.4"/>
-            </Border.Effect>
 
-            <StackPanel Orientation="Horizontal">
+            <Grid>
 
-                <TextBlock Text="&#xE7BA;"
-                   FontFamily="Segoe MDL2 Assets"
-                   FontSize="20"
-                   Foreground="White"
-                   VerticalAlignment="Center"
-                   Margin="0,0,12,0"/>
 
-                <StackPanel VerticalAlignment="Center">
+                <!-- ==================================
+             NORMAL MODE
+             ================================== -->
 
-                    <TextBlock Text="Sisa Waktu 1 Menit"
-                       FontSize="14"
-                       FontWeight="SemiBold"
-                       Foreground="White"/>
+                <StackPanel x:Name="NormalWarningContent"
+                    Orientation="Horizontal">
 
-                    <TextBlock Text="Sesi karaoke akan segera berakhir"
-                       FontSize="12"
-                       Foreground="#FFFFE4E4"/>
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+
+                            <Setter Property="Visibility"
+                            Value="Visible"/>
+
+                            <Style.Triggers>
+
+                                <DataTrigger Binding="{Binding Player.IsFullScreen}"
+                                     Value="True">
+
+                                    <Setter Property="Visibility"
+                                    Value="Collapsed"/>
+
+                                </DataTrigger>
+
+                            </Style.Triggers>
+
+                        </Style>
+                    </StackPanel.Style>
+
+
+                    <!-- Icon -->
+                    <TextBlock Text="&#xE7BA;"
+                       FontFamily="Segoe MDL2 Assets"
+                       FontSize="20"
+                       Foreground="White"
+                       VerticalAlignment="Center"
+                       Margin="0,0,12,0"/>
+
+
+                    <StackPanel VerticalAlignment="Center">
+
+                        <TextBlock Text="Sisa Waktu 1 Menit"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="White"/>
+
+                        <TextBlock Text="Sesi karaoke akan segera berakhir"
+                           FontSize="12"
+                           Foreground="#FFFFE4E4"/>
+
+                    </StackPanel>
 
                 </StackPanel>
 
-            </StackPanel>
+
+                <!-- ==================================
+             FULLSCREEN MODE
+             ================================== -->
+
+                <Border x:Name="FullscreenWarningContent"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Top"
+        Margin="0,0,0,0"
+        Padding="12,7"
+        Background="#CC450A0A"
+        BorderBrush="#FFEF4444"
+        BorderThickness="1"
+        CornerRadius="8">
+
+                    <Border.Style>
+                        <Style TargetType="Border">
+
+                            <Setter Property="Visibility"
+                    Value="Collapsed"/>
+
+                            <Style.Triggers>
+
+                                <DataTrigger Binding="{Binding Player.IsFullScreen}"
+                             Value="True">
+
+                                    <Setter Property="Visibility"
+                            Value="Visible"/>
+
+                                </DataTrigger>
+
+                            </Style.Triggers>
+
+                        </Style>
+                    </Border.Style>
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <!-- Warning icon -->
+                        <TextBlock Text="&#xE7BA;"
+                   FontFamily="Segoe MDL2 Assets"
+                   FontSize="13"
+                   Foreground="#FFF87171"
+                   VerticalAlignment="Center"
+                   Margin="0,0,7,0"/>
+
+                        <!-- Text -->
+                        <TextBlock Text="Sisa waktu 1 menit"
+                   FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="#FFFCA5A5"
+                   VerticalAlignment="Center"/>
+
+                    </StackPanel>
+
+                </Border>
+
+            </Grid>
+
+
         </Border>
 
         <Border x:Name="SessionExpiredPopup"
@@ -525,6 +643,9 @@
             <Border.Style>
                 <Style TargetType="Border">
                     <!-- Default: Sembunyi -->
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="Margin" Value="0"/>
                     <Setter Property="Visibility" Value="Collapsed"/>
 
                     <Style.Triggers>

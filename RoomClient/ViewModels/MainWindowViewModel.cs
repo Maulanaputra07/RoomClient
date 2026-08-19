@@ -37,6 +37,8 @@ namespace RoomClient.ViewModels
             _signalRService.SessionExpired += OnSessionExpired;
             _signalRService.SessionExtended += OnSessionExtended;
             _signalRService.CurrentRoomReceived += OnCurrentRoomReceived;
+
+            Player.SessionFullyExpired += OnPlayerSessionFullyExpired;
         }
 
         public SearchViewModel Search { get; }
@@ -71,36 +73,49 @@ namespace RoomClient.ViewModels
 
         private void OnSessionExpired(object? sender, EventArgs e)
         {
-            // Cek dulu apakah sesi sedang aktif sebelum mematikan player
-            if (Player.IsSessionActive)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                _ = Player.StopAsync();
-            }
-            else
-            {
-                // Jika aplikasi baru buka & belum ada sesi, cukup pastikan state awal bersih tanpa set IsSessionExpired
-                Player.IsSessionActive = false;
-                Player.IsSessionExpired = false;
-            }
+                if (Player.IsSessionActive)
+                {
+                    // Kalau sedang ada lagu diputar, ExpireSession akan menunggu lagu selesai dulu (grace period).
+                    // Kalau tidak ada lagu diputar, ExpireSession akan langsung finalize.
+                    Player.ExpireSession();
+                }
+                else
+                {
+                    // Aplikasi baru buka & belum ada sesi — bersihkan state awal tanpa tampilkan "expired"
+                    Player.IsSessionActive = false;
+                    Player.IsSessionExpired = false;
+                    SongList.Results.Clear();
+                    Queue.Items.Clear();
+                    Search.Reset();
+                }
+            });
+        }
 
-            SongList.Results.Clear();
-            Queue.Items.Clear();
-            Search.Reset();
+        private void OnPlayerSessionFullyExpired(object? sender, EventArgs e)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                SongList.Results.Clear();
+                Queue.Items.Clear();
+                Search.Reset();
+            });
         }
 
         private void OnSessionStarted(object? sender, SessionStartedPayload data)
         {
-            Player.ActivateSession(data.EndTime);
+            Application.Current.Dispatcher.Invoke(() => Player.ActivateSession(data.EndTime));
         }
 
         private void OnSessionExtended(object? sender, SessionStartedPayload data)
         {
-            Player.ExtendSession(data.EndTime);
+            Application.Current.Dispatcher.Invoke(() => Player.ExtendSession(data.EndTime));
         }
 
         private void OnCurrentRoomReceived(object? sender, CurrentRoomPayload data)
         {
-            Status.UpdateCurrentRoom(data);
+            Application.Current.Dispatcher.Invoke(() => Status.UpdateCurrentRoom(data));
         }
     }
 }
