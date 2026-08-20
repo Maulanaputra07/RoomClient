@@ -1,9 +1,5 @@
-﻿using RoomClient.Core.Models;
-using RoomClient.Helpers;
+using RoomClient.Core.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RoomClient.Core.Interfaces
@@ -26,9 +22,9 @@ namespace RoomClient.Core.Interfaces
         event EventHandler<Song?>? CurrentSongChanged;
         event EventHandler<PlaybackState>? PlaybackStateChanged;
         event EventHandler<TimeSpan>? PositionChanged;
-        event EventHandler<string>? JavaScriptCommandRequested;
+        event EventHandler<VlcCommand>? VlcCommandRequested;
 
-        void UpdatePlaybackStateFromWebView(PlaybackState state);
+        void UpdatePlaybackState(PlaybackState state);
 
         Task PlayAsync(Song song);
         Task ResumeAsync();
@@ -38,6 +34,5 @@ namespace RoomClient.Core.Interfaces
         Task NextAsync();
         Task PreviousAsync();
         Task SetVolumeAsync(double volume);
-        string GetApplyVolumeScript();
     }
 }

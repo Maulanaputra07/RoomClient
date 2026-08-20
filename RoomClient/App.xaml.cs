@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RoomClient.Core.Interfaces;
@@ -90,39 +90,28 @@ services.AddSingleton<IVoiceSearchService, VoiceSearchService>();
         /// </summary>
         private async void OnStartup(object sender, StartupEventArgs e)
         {
+            // LibVLCSharp Core wajib diinisialisasi sekali di startup sebelum pembuatan UI apapun
+            try
+            {
+                LibVLCSharp.Shared.Core.Initialize();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[VLC] Core.Initialize failed: {ex.Message}");
+            }
+
+            AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+            {
+                LogCrash("AppDomain.UnhandledException", args.ExceptionObject as Exception);
+            };
+
+            TaskScheduler.UnobservedTaskException += (s, args) =>
+            {
+                LogCrash("TaskScheduler.UnobservedTaskException", args.Exception);
+                args.SetObserved();
+            };
+
             await _host.StartAsync();
-
-            //try
-            //{
-            //    var voiceSearchService = _host.Services.GetRequiredService<IVoiceSearchService>();
-            //    MessageBox.Show(
-            //        "Silakan ucapkan perintah pencarian.\n\n" +
-            //        "Contoh:\n" +
-            //        "\"Putar lagu Hindia Membasuh\"",
-            //        "Voice Search Test",
-            //        MessageBoxButton.OK,
-            //        MessageBoxImage.Information);
-
-            //    var query = await voiceSearchService.ListenAsync();
-            //    MessageBox.Show(
-            //        string.IsNullOrWhiteSpace(query)
-            //            ? "Tidak ada query yang berhasil dikenali."
-            //            : $"Hasil Voice Search:\n\n{query}",
-            //        "Voice Search Result",
-            //        MessageBoxButton.OK,
-            //        MessageBoxImage.Information);
-            //}
-            //catch (Exception ex)
-            //{
-            //    System.Windows.MessageBox.Show(
-            //        $"Voice service test gagal:\n\n{ex}",
-            //        "Voice Test Error",
-            //        MessageBoxButton.OK,
-            //        MessageBoxImage.Error);
-
-            //    Shutdown();
-            //    return;
-            //}
 
             var mainWindow = Services.GetRequiredService<MainWindow>();
 
@@ -145,7 +134,28 @@ services.AddSingleton<IVoiceSearchService, VoiceSearchService>();
         /// </summary>
         private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
+            LogCrash("DispatcherUnhandledException", e.Exception);
+            #if DEBUG
+            MessageBox.Show($"Unhandled UI Exception:\n{e.Exception.Message}\n\n{e.Exception.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            #endif
+            e.Handled = true;
+        }
+
+        private static void LogCrash(string source, Exception? ex)
+        {
+            if (ex is null) return;
+            Debug.WriteLine($"[CRASH][{source}] {ex}");
+            try
+            {
+                var logDir = Path.Combine(AppContext.BaseDirectory, "logs");
+                Directory.CreateDirectory(logDir);
+                var logPath = Path.Combine(logDir, "crash.log");
+                File.AppendAllText(logPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{source}] {ex}\n\n");
+            }
+            catch
+            {
+                // Ignore failure writing crash log
+            }
         }
 
 

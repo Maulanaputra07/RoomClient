@@ -1,9 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
@@ -15,21 +15,15 @@ namespace RoomClient.ViewModels
         private readonly IYoutubeService _youtubeService;
         private DateTimeOffset? _sessionEndTime;
         private DispatcherTimer? _countdownTimer;
-        public event EventHandler<string>? JavaScriptCommandRequested;
         public event EventHandler? SessionFullyExpired;
+        public event EventHandler<VlcCommand>? VlcCommandRequested;
 
         private readonly Stack<Song> _history = new();
         public Func<bool>? HasNextSong { get; set; }
         public Func<Song?>? DequeueNextSong { get; set; }
 
-        public string GetApplyVolumeScript() => _playerService.GetApplyVolumeScript();
-
-        // Source Generator otomatis mendefinisikan properti PascalCase untuk setiap field di bawah
         [ObservableProperty]
         private string _nowPlaying = "Tidak ada lagu yang diputar";
-
-        [ObservableProperty]
-        private string? _playerHtml;
 
         [ObservableProperty]
         private bool _isSessionActive;
@@ -58,12 +52,15 @@ namespace RoomClient.ViewModels
         [ObservableProperty]
         private bool _isMuted = false;
 
+        [ObservableProperty]
+        private string? _vlcSourceUrl;
+
         private double _previousVolume = 100;
         private bool _isSessionExpiredPending;
 
         partial void OnVolumeChanged(double value)
         {
-            _playerService.SetVolumeAsync(value);
+            _ = _playerService.SetVolumeAsync(value);
             IsMuted = value == 0;
         }
 
@@ -74,10 +71,10 @@ namespace RoomClient.ViewModels
 
             _playerService.CurrentSongChanged += OnCurrentSongChanged;
             _playerService.PlaybackStateChanged += OnPlaybackStateChanged;
-            _playerService.JavaScriptCommandRequested += OnJavaScriptCommandRequested;
+            _playerService.VlcCommandRequested += OnVlcCommandRequested;
         }
-        private void OnJavaScriptCommandRequested(object? sender, string js) => JavaScriptCommandRequested?.Invoke(this, js);
 
+        private void OnVlcCommandRequested(object? sender, VlcCommand cmd) => VlcCommandRequested?.Invoke(this, cmd);
 
         [RelayCommand]
         private async Task TogglePlayPauseAsync()
@@ -156,7 +153,7 @@ namespace RoomClient.ViewModels
             {
                 RemainingTimeText = "00:00";
                 _countdownTimer?.Stop();
-                ExpireSession(); // DIUBAH — dari logic langsung stop, sekarang lewat method terpusat
+                ExpireSession();
                 return;
             }
 
@@ -172,21 +169,19 @@ namespace RoomClient.ViewModels
 
         public void ExpireSession()
         {
-            if (IsSessionExpired) return; // sudah expired sebelumnya, hindari trigger dobel
+            if (IsSessionExpired) return;
 
-            var isCurrentlyPlaying = CurrentSong is not null && !string.IsNullOrEmpty(PlayerHtml);
+            var isCurrentlyPlaying = CurrentSong is not null && !string.IsNullOrEmpty(VlcSourceUrl);
 
             if (isCurrentlyPlaying)
             {
-                // Grace period: biarkan lagu selesai dulu.
-                // IsSessionActive TETAP true supaya video terus jalan; popup baru muncul setelah lagu selesai.
+                // Grace period: biarkan lagu selesai diputar dulu
                 _isSessionExpiredPending = true;
                 NextCommand.NotifyCanExecuteChanged();
                 PreviousCommand.NotifyCanExecuteChanged();
             }
             else
             {
-                // Tidak ada lagu sedang diputar — stop langsung seperti perilaku sebelumnya
                 FinalizeSessionExpiry();
             }
         }
@@ -209,11 +204,9 @@ namespace RoomClient.ViewModels
 
         private async Task StopPlayerAfterSessionExpiredAsync()
         {
-            PlayerHtml = null;
-
             try
             {
-                await _playerService.StopAsync();
+                await StopPlaybackCoreAsync(resetSessionClock: false, keepSessionState: false, nowPlayingText: "Sesi telah berakhir");
             }
             catch (Exception ex)
             {
@@ -222,21 +215,48 @@ namespace RoomClient.ViewModels
             }
         }
 
-        public async Task PlayAsync(Song song)
+        private async Task StopPlaybackCoreAsync(bool resetSessionClock, bool keepSessionState, string nowPlayingText)
         {
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] PlayAsync dipanggil untuk: {song.Title}, IsSessionActive={IsSessionActive}");
-            if (!IsSessionActive)
+            _isSessionExpiredPending = false;
+            VlcSourceUrl = null;
+            NowPlaying = nowPlayingText;
+            ShowOneMinuteWarning = false;
+
+            if (resetSessionClock)
             {
-                NowPlaying = "Sesi belum dimulai";
-                System.Diagnostics.Debug.WriteLine("[DEBUG] PlayAsync di-abort: IsSessionActive false");
-                return;
+                RemainingTimeText = "00:00";
             }
 
-            if (_isSessionExpiredPending)
+            if (!keepSessionState)
             {
-                System.Diagnostics.Debug.WriteLine("[DEBUG] PlayAsync di-abort: sesi dalam grace period (menyelesaikan lagu terakhir)");
-                return;
+                if (IsSessionActive)
+                {
+                    IsSessionExpired = true;
+                }
+
+                IsSessionActive = false;
+
+                if (_countdownTimer != null)
+                {
+                    _countdownTimer.Stop();
+                }
             }
+
+            await _playerService.StopAsync();
+        }
+
+        public async Task StopPlaybackAsync()
+        {
+            await StopPlaybackCoreAsync(
+                resetSessionClock: false,
+                keepSessionState: true,
+                nowPlayingText: "Tidak ada lagu yang diputar");
+        }
+
+        public async Task PlayAsync(Song song)
+        {
+            if (!IsSessionActive) { NowPlaying = "Sesi belum dimulai"; return; }
+            if (_isSessionExpiredPending) return;
 
             var hasValidIdentifier = song.Source == SongSource.Database
                 ? !string.IsNullOrWhiteSpace(song.DirectStreamUrl)
@@ -254,19 +274,13 @@ namespace RoomClient.ViewModels
 
             try
             {
-                PlayerHtml = null;
-
                 string? streamUrl = song.Source == SongSource.Database
-                     ? song.DirectStreamUrl
-                     : await _youtubeService.GetStreamUrlAsync(song.VideoId);
-                System.Diagnostics.Debug.WriteLine($"[DEBUG] streamUrl hasil: {(string.IsNullOrEmpty(streamUrl) ? "KOSONG/NULL" : "OK")}");
+                    ? song.DirectStreamUrl
+                    : await _youtubeService.GetStreamUrlAsync(song.VideoId);
 
-                if (!IsSessionActive)
-                {
-                    NowPlaying = "Sesi telah berakhir";
-                    return;
-                }
+                if (!IsSessionActive) { NowPlaying = "Sesi telah berakhir"; return; }
 
+                System.Diagnostics.Debug.WriteLine($"[DEBUG-STREAM] Song: '{song.Title}' | Source: {song.Source} | URL: {streamUrl}");
 
                 if (string.IsNullOrWhiteSpace(streamUrl))
                 {
@@ -274,14 +288,11 @@ namespace RoomClient.ViewModels
                     return;
                 }
 
-                PlayerHtml = _youtubeService.BuildPlayerHtml(streamUrl);
-                System.Diagnostics.Debug.WriteLine("[DEBUG] PlayerHtml di-set, memanggil _playerService.PlayAsync");
+                VlcSourceUrl = streamUrl;
                 await _playerService.PlayAsync(song);
-                System.Diagnostics.Debug.WriteLine("[DEBUG] _playerService.PlayAsync selesai");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[DEBUG] EXCEPTION di PlayAsync: {ex}");
                 NowPlaying = $"Gagal memutar: {ex.Message}";
             }
         }
@@ -303,34 +314,16 @@ namespace RoomClient.ViewModels
         [RelayCommand]
         public async Task StopAsync()
         {
-            _isSessionExpiredPending = false;
-            NowPlaying = "waiting";
-            PlayerHtml = null;
-            RemainingTimeText = "00:00";
-            if (IsSessionActive)
-            {
-                IsSessionExpired = true;
-            }
-            IsSessionActive = false;
-            ShowOneMinuteWarning = false;
-
-            if (_countdownTimer != null)
-            {
-                _countdownTimer.Stop();
-            }
-
-            await _playerService.StopAsync();
+            await StopPlaybackAsync();
         }
 
-        private bool CanGoNext() => !_isSessionExpiredPending && (HasNextSong?.Invoke() ?? false); // DIUBAH
+        private bool CanGoNext() => !_isSessionExpiredPending && (HasNextSong?.Invoke() ?? false);
         private bool CanGoPrevious() => !_isSessionExpiredPending && _history.Count > 0;
 
         [RelayCommand(CanExecute = nameof(CanGoNext))]
         private async Task NextAsync()
         {
-            System.Diagnostics.Debug.WriteLine("[DEBUG] NextAsync dipanggil");
             var nextSong = DequeueNextSong?.Invoke();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] DequeueNextSong hasil: {nextSong?.Title ?? "NULL"}");
             if (nextSong is not null)
             {
                 await PlayAsync(nextSong);
@@ -345,7 +338,6 @@ namespace RoomClient.ViewModels
             await PlayAsync(prevSong);
         }
 
-
         private void OnCurrentSongChanged(object? sender, Song? song)
         {
             CurrentSong = song;
@@ -354,6 +346,10 @@ namespace RoomClient.ViewModels
                 NowPlaying = string.IsNullOrWhiteSpace(song.Artist)
                     ? song.Title
                     : $"{song.Title} - {song.Artist}";
+            }
+            else if (!_isSessionExpiredPending && IsSessionActive)
+            {
+                NowPlaying = "Tidak ada lagu yang diputar";
             }
 
             NextCommand.NotifyCanExecuteChanged();
@@ -369,7 +365,7 @@ namespace RoomClient.ViewModels
         {
             _playerService.CurrentSongChanged -= OnCurrentSongChanged;
             _playerService.PlaybackStateChanged -= OnPlaybackStateChanged;
-            _playerService.JavaScriptCommandRequested -= OnJavaScriptCommandRequested;
+            _playerService.VlcCommandRequested -= OnVlcCommandRequested;
 
             if (_countdownTimer != null)
             {
@@ -378,7 +374,7 @@ namespace RoomClient.ViewModels
             }
         }
 
-        public void NotifyWebViewPlaybackState(PlaybackState state) => _playerService.UpdatePlaybackStateFromWebView(state);
+        public void NotifyPlaybackState(PlaybackState state) => _playerService.UpdatePlaybackState(state);
 
         public void NotifySongEnded()
         {
@@ -387,10 +383,15 @@ namespace RoomClient.ViewModels
                 FinalizeSessionExpiry();
                 return;
             }
+
             if (NextCommand.CanExecute(null))
+            {
                 NextCommand.Execute(null);
+            }
             else
-                _ = StopAsync();
+            {
+                _ = StopPlaybackAsync();
+            }
         }
     }
 }

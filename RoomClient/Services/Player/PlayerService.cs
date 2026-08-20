@@ -1,12 +1,6 @@
-﻿using RoomClient.Core.Interfaces;
+using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
-using RoomClient.Helpers;
-using RoomClient.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RoomClient.Services.Player
@@ -18,7 +12,8 @@ namespace RoomClient.Services.Player
         private TimeSpan _currentPosition = TimeSpan.Zero;
         private TimeSpan _duration = TimeSpan.Zero;
         private double _volume = 100;
-        public event EventHandler<string>? JavaScriptCommandRequested;
+
+        public event EventHandler<VlcCommand>? VlcCommandRequested;
 
         public Song? CurrentSong
         {
@@ -69,12 +64,11 @@ namespace RoomClient.Services.Player
         public event EventHandler<PlaybackState>? PlaybackStateChanged;
         public event EventHandler<TimeSpan>? PositionChanged;
 
-        // DIUBAH: constructor kosong (parameterless), tidak lagi minta WebViewPlayer dari DI
         public PlayerService()
         {
         }
 
-        public void UpdatePlaybackStateFromWebView(PlaybackState state)
+        public void UpdatePlaybackState(PlaybackState state)
         {
             State = state;
         }
@@ -91,7 +85,7 @@ namespace RoomClient.Services.Player
             if (CurrentSong != null && State == PlaybackState.Paused)
             {
                 State = PlaybackState.Playing;
-                JavaScriptCommandRequested?.Invoke(this, "resumeVideo();");
+                VlcCommandRequested?.Invoke(this, new VlcCommand { Type = VlcCommandType.Resume });
             }
             return Task.CompletedTask;
         }
@@ -101,7 +95,7 @@ namespace RoomClient.Services.Player
             if (State == PlaybackState.Playing)
             {
                 State = PlaybackState.Paused;
-                JavaScriptCommandRequested?.Invoke(this, "pauseVideo();");
+                VlcCommandRequested?.Invoke(this, new VlcCommand { Type = VlcCommandType.Pause });
             }
             return Task.CompletedTask;
         }
@@ -111,14 +105,14 @@ namespace RoomClient.Services.Player
             State = PlaybackState.Stopped;
             CurrentSong = null;
             CurrentPosition = TimeSpan.Zero;
-            JavaScriptCommandRequested?.Invoke(this, "stopVideo();");
+            VlcCommandRequested?.Invoke(this, new VlcCommand { Type = VlcCommandType.Stop });
             return Task.CompletedTask;
         }
 
         public Task SeekAsync(TimeSpan position)
         {
             CurrentPosition = position;
-            JavaScriptCommandRequested?.Invoke(this, $"player.currentTime = {position.TotalSeconds};");
+            VlcCommandRequested?.Invoke(this, new VlcCommand { Type = VlcCommandType.Seek, Position = position });
             return Task.CompletedTask;
         }
 
@@ -132,22 +126,11 @@ namespace RoomClient.Services.Player
             return Task.CompletedTask;
         }
 
-        // DIUBAH: guard null karena _webViewPlayer mungkin belum di-attach
         public Task SetVolumeAsync(double volume)
         {
             _volume = Math.Clamp(volume, 0, 100);
-            var normalized = (_volume / 100.0).ToString(CultureInfo.InvariantCulture);
-
-            JavaScriptCommandRequested?.Invoke(this,
-                $"if(typeof player!=='undefined'){{player.volume={normalized};}}");
-
+            VlcCommandRequested?.Invoke(this, new VlcCommand { Type = VlcCommandType.SetVolume, Volume = _volume });
             return Task.CompletedTask;
-        }
-
-        public string GetApplyVolumeScript()
-        {
-            var normalized = (_volume / 100.0).ToString(CultureInfo.InvariantCulture);
-            return $"if(typeof player!=='undefined'){{player.volume={normalized};}}";
         }
     }
 }

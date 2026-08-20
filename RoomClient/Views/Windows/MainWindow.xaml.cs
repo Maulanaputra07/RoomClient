@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using RoomClient.Core.Interfaces;
 using RoomClient.ViewModels;
 using System;
@@ -83,10 +83,35 @@ namespace RoomClient.Views.Windows
                 e.Handled = true;
                 SimulateReadyState();
             }
+
+            // DEBUG ONLY: Ctrl+Alt+Shift+D untuk test putar file .DAT lokal via VLC
+            if (e.Key == Key.D &&
+                (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control &&
+                (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt &&
+                (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                e.Handled = true;
+                _ = SimulateDatPlaybackAsync();
+            }
+
+            // DEBUG ONLY: Ctrl+Alt+Shift+V untuk test putar valid online video stream (Big Buck Bunny) via VLC
+            if (e.Key == Key.V &&
+                (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control &&
+                (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt &&
+                (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                e.Handled = true;
+                _ = SimulateOnlineStreamPlaybackAsync();
+            }
 #endif
         }
 
 #if DEBUG
+        // ─── UBAH PATH INI sesuai lokasi file .DAT Anda ───────────────────────
+        private const string _debugDatFilePath = @"D:\Downloads\DIAN FK - CIDRO.DAT";
+        private const string _debugOnlineStreamUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
+        // ────────────────────────────────────────────────────────────────────────
+
         private void SimulateReadyState()
         {
             if (DataContext is not MainWindowViewModel vm) return;
@@ -96,6 +121,75 @@ namespace RoomClient.Views.Windows
             vm.Player.ActivateSession(DateTimeOffset.UtcNow.AddMinutes(02));
 
             vm.Status.AddLog("[DEBUG] Simulated: WebSocket ready + session active (2 min)");
+        }
+
+        private async Task SimulateOnlineStreamPlaybackAsync()
+        {
+            if (DataContext is not MainWindowViewModel vm) return;
+
+            if (!vm.Player.IsSessionActive)
+            {
+                vm.Status.IsWebSocketConnecting = true;
+                vm.Status.IsWebSocketReady = true;
+                vm.Player.ActivateSession(DateTimeOffset.UtcNow.AddMinutes(30));
+                vm.Status.AddLog("[DEBUG-VLC] Session diaktifkan otomatis (30 menit)");
+            }
+
+            // Tunggu UI render pass selesai agar HWND kontrol VLC terbentuk sebelum PlayAsync
+            await Dispatcher.Yield(DispatcherPriority.Render);
+
+            var testSong = new RoomClient.Core.Models.Song
+            {
+                Source = RoomClient.Core.Models.SongSource.Database,
+                Title = "Big Buck Bunny (Sample Online Stream)",
+                Artist = "Blender Foundation",
+                VideoId = $"debug-online-{Guid.NewGuid():N}",
+                DirectStreamUrl = _debugOnlineStreamUrl,
+            };
+
+            vm.Status.AddLog($"[DEBUG-VLC] Memutar Online Sample: {_debugOnlineStreamUrl}");
+            await vm.Player.PlayAsync(testSong);
+        }
+
+        private async Task SimulateDatPlaybackAsync()
+        {
+            if (DataContext is not MainWindowViewModel vm) return;
+
+            // 1. Pastikan session aktif (jika belum)
+            if (!vm.Player.IsSessionActive)
+            {
+                vm.Status.IsWebSocketConnecting = false;
+                vm.Status.IsWebSocketReady = true;
+                vm.Player.ActivateSession(DateTimeOffset.UtcNow.AddMinutes(01));
+                vm.Status.AddLog("[DEBUG-VLC] Session diaktifkan otomatis (30 menit)");
+            }
+
+            // Tunggu UI render pass selesai agar HWND kontrol VLC terbentuk sebelum PlayAsync
+            await Dispatcher.Yield(DispatcherPriority.Render);
+
+            // 2. Validasi file ada
+            if (!System.IO.File.Exists(_debugDatFilePath))
+            {
+                System.Windows.MessageBox.Show(
+                    $"File .DAT tidak ditemukan:\n{_debugDatFilePath}\n\n" +
+                    "Ubah konstanta _debugDatFilePath di MainWindow.xaml.cs",
+                    "[DEBUG] VLC Test — File Not Found");
+                return;
+            }
+
+            // 3. Buat Song object dengan Source = Database
+            var testSong = new RoomClient.Core.Models.Song
+            {
+                Source = RoomClient.Core.Models.SongSource.Database,
+                Title = System.IO.Path.GetFileName(_debugDatFilePath),
+                VideoId = $"debug-dat-{Guid.NewGuid():N}",   // ID unik agar history tracking tidak bentrok
+                DirectStreamUrl = _debugDatFilePath,
+            };
+
+            vm.Status.AddLog($"[DEBUG-VLC] Memutar: {_debugDatFilePath}");
+
+            // 4. Panggil PlayAsync — ini akan trigger VlcSourceUrl → VlcVideoView tampil
+            await vm.Player.PlayAsync(testSong);
         }
 #endif
 
@@ -131,6 +225,97 @@ namespace RoomClient.Views.Windows
             base.OnClosed(e);
         }
 
+        private const double FullscreenExitButtonRightMargin = 28;
+        private const double FullscreenExitButtonBottomMargin = 28;
+        private const double FullscreenOneMinuteWarningRightMargin = 28;
+        private const double FullscreenOneMinuteWarningTopMargin = 24;
+
+        private bool _isSidebarOpen = true;
+
+        private void UpdateFullscreenPopupBounds()
+        {
+            var width = ActualWidth > 0 ? ActualWidth : PlayerContainer.ActualWidth;
+            var height = ActualHeight > 0 ? ActualHeight : PlayerContainer.ActualHeight;
+
+            if (width > 0 && height > 0)
+            {
+                FullscreenOverlayRootGrid.Width = width;
+                FullscreenOverlayRootGrid.Height = height;
+            }
+        }
+
+
+        private void UpdateFullscreenExitButtonPopupPosition()
+        {
+            if (ExitFullScreenButton is null || FullscreenExitButtonPopup is null)
+            {
+                return;
+            }
+
+            ExitFullScreenButton.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            var buttonWidth = ExitFullScreenButton.ActualWidth > 0
+                ? ExitFullScreenButton.ActualWidth
+                : ExitFullScreenButton.DesiredSize.Width;
+            var buttonHeight = ExitFullScreenButton.ActualHeight > 0
+                ? ExitFullScreenButton.ActualHeight
+                : ExitFullScreenButton.DesiredSize.Height;
+
+            var hostWidth = ActualWidth > 0 ? ActualWidth : Width;
+            var hostHeight = ActualHeight > 0 ? ActualHeight : Height;
+
+            if (hostWidth <= 0 || hostHeight <= 0 || buttonWidth <= 0 || buttonHeight <= 0)
+            {
+                return;
+            }
+
+            FullscreenExitButtonPopup.HorizontalOffset = Math.Max(0, hostWidth - buttonWidth - FullscreenExitButtonRightMargin);
+            FullscreenExitButtonPopup.VerticalOffset = Math.Max(0, hostHeight - buttonHeight - FullscreenExitButtonBottomMargin);
+        }
+
+        private void UpdateFullscreenOneMinuteWarningPopupPosition()
+        {
+            if (FullscreenOneMinuteWarningContent is null || FullscreenOneMinuteWarningPopup is null)
+            {
+                return;
+            }
+
+            FullscreenOneMinuteWarningContent.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            var warningWidth = FullscreenOneMinuteWarningContent.ActualWidth > 0
+                ? FullscreenOneMinuteWarningContent.ActualWidth
+                : FullscreenOneMinuteWarningContent.DesiredSize.Width;
+
+            var hostWidth = ActualWidth > 0 ? ActualWidth : Width;
+
+            if (hostWidth <= 0 || warningWidth <= 0)
+            {
+                return;
+            }
+
+            FullscreenOneMinuteWarningPopup.HorizontalOffset = Math.Max(0, hostWidth - warningWidth - FullscreenOneMinuteWarningRightMargin);
+            FullscreenOneMinuteWarningPopup.VerticalOffset = FullscreenOneMinuteWarningTopMargin;
+        }
+
+        private void UpdateFullscreenOneMinuteWarningVisibility()
+        {
+            if (DataContext is not MainWindowViewModel vm)
+            {
+                FullscreenOneMinuteWarningPopup.IsOpen = false;
+                return;
+            }
+
+            var shouldShow = _isPlayerFullScreen && vm.Player.ShowOneMinuteWarning;
+            FullscreenOneMinuteWarningPopup.IsOpen = shouldShow;
+
+            if (shouldShow)
+            {
+                UpdateLayout();
+                UpdateFullscreenOneMinuteWarningPopupPosition();
+                FullscreenOneMinuteWarningHost.Opacity = 1;
+            }
+        }
+
         public void SetPlayerFullScreen(bool fullScreen)
         {
             if (fullScreen == _isPlayerFullScreen) return;
@@ -138,26 +323,126 @@ namespace RoomClient.Views.Windows
 
             if (fullScreen)
             {
-                PlayerContainer.Child = null;
-                PlayerFullScreenContent.Content = PlayerViewControl;
-                PlayerFullScreenHost.Visibility = Visibility.Visible;
-                MainContentGrid.Visibility = Visibility.Collapsed;
-                ShowNowPlayingOverlay();
+                _isSidebarOpen = SidebarContainer.Visibility == Visibility.Visible;
+
+                HeaderRowBorder.Visibility = Visibility.Collapsed;
+                CategoryRowBorder.Visibility = Visibility.Collapsed;
+                ContentRowGrid.Margin = new Thickness(0);
+
+                SidebarContainer.Visibility = Visibility.Collapsed;
+                SidebarColumnDefinition.Width = new GridLength(0);
+                OpenSidebarButton.Visibility = Visibility.Collapsed;
+
+                PlayerWrapperGrid.Margin = new Thickness(0);
+                PlayerContainer.CornerRadius = new CornerRadius(0);
+
+                FullscreenOverlayPopup.IsOpen = false;
+                FullscreenExitButtonPopup.IsOpen = true;
+                UpdateLayout();
+                UpdateFullscreenExitButtonPopupPosition();
+                UpdateFullscreenOneMinuteWarningVisibility();
+                ShowFullscreenOverlay();
             }
             else
             {
-                PlayerFullScreenContent.Content = null;
-                PlayerContainer.Child = PlayerViewControl;
-                PlayerFullScreenHost.Visibility = Visibility.Collapsed;
-                MainContentGrid.Visibility = Visibility.Visible;
+                FullscreenOverlayPopup.IsOpen = false;
                 _overlayHideTimer?.Stop();
+
+                HeaderRowBorder.Visibility = Visibility.Visible;
+                CategoryRowBorder.Visibility = Visibility.Visible;
+                ContentRowGrid.Margin = new Thickness(12, 0, 12, 12);
+
+                if (_isSidebarOpen)
+                {
+                    SidebarContainer.Visibility = Visibility.Visible;
+                    SidebarColumnDefinition.Width = new GridLength(300);
+                    OpenSidebarButton.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    SidebarContainer.Visibility = Visibility.Collapsed;
+                    SidebarColumnDefinition.Width = new GridLength(0);
+                    OpenSidebarButton.Visibility = Visibility.Visible;
+                }
+
+                PlayerWrapperGrid.ClearValue(FrameworkElement.MarginProperty);
+                PlayerContainer.CornerRadius = new CornerRadius(16);
+
+                FullscreenExitButtonPopup.IsOpen = false;
+                FullscreenOneMinuteWarningPopup.IsOpen = false;
+                BottomPlayerBar.Visibility = Visibility.Visible;
             }
         }
 
-        private void PlayerFullScreenHost_MouseMove(object sender, MouseEventArgs e)
+        private void FullscreenOverlay_MouseMove(object sender, MouseEventArgs e)
         {
             if (!_isPlayerFullScreen) return;
-            ShowNowPlayingOverlay();
+            ShowFullscreenOverlay();
+        }
+
+        private void FullscreenOverlay_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+            ShowFullscreenOverlay();
+        }
+
+        private void FullscreenOverlay_TouchDown(object? sender, TouchEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+            ShowFullscreenOverlay();
+        }
+
+        private void ShowFullscreenOverlay()
+        {
+            if (!_isPlayerFullScreen) return;
+
+            UpdateFullscreenPopupBounds();
+            FullscreenOverlayPopup.IsOpen = true;
+
+            FullscreenOverlayRootGrid.IsHitTestVisible = true;
+            FullscreenOverlayRootGrid.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, TimeSpan.FromMilliseconds(200)));
+            FullscreenExitButtonHost.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, TimeSpan.FromMilliseconds(200)));
+            if (FullscreenOneMinuteWarningPopup.IsOpen)
+            {
+                FullscreenOneMinuteWarningHost.Opacity = 1;
+            }
+
+            _overlayHideTimer?.Stop();
+            _overlayHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
+            _overlayHideTimer.Tick += (s, e) =>
+            {
+                _overlayHideTimer?.Stop();
+                if (_isPlayerFullScreen)
+                {
+                    // Fade overlay atas dan tombol exit agar tidak terlalu mengganggu video/lirik.
+                    FullscreenOverlayRootGrid.BeginAnimation(UIElement.OpacityProperty,
+                        new DoubleAnimation(0.35, TimeSpan.FromMilliseconds(500)));
+                    FullscreenExitButtonHost.BeginAnimation(UIElement.OpacityProperty,
+                        new DoubleAnimation(0.35, TimeSpan.FromMilliseconds(500)));
+                    if (FullscreenOneMinuteWarningPopup.IsOpen)
+                    {
+                        FullscreenOneMinuteWarningHost.Opacity = 1;
+                    }
+                }
+            };
+            _overlayHideTimer.Start();
+        }
+
+        private void ExitFullScreenButton_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+
+            _overlayHideTimer?.Stop();
+            FullscreenExitButtonHost.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, TimeSpan.FromMilliseconds(120)));
+        }
+
+        private void ExitFullScreenButton_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+            ShowFullscreenOverlay();
         }
 
         private void ExitFullScreenButton_Click(object sender, RoutedEventArgs e)
@@ -166,24 +451,6 @@ namespace RoomClient.Views.Windows
             {
                 vm.Player.IsFullScreen = false;
             }
-        }
-
-        private void ShowNowPlayingOverlay()
-        {
-            NowPlayingOverlay.IsHitTestVisible = true;
-            NowPlayingOverlay.BeginAnimation(UIElement.OpacityProperty,
-                new DoubleAnimation(1, TimeSpan.FromMilliseconds(150)));
-
-            _overlayHideTimer?.Stop();
-            _overlayHideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-            _overlayHideTimer.Tick += (s, e) =>
-            {
-                _overlayHideTimer!.Stop();
-                NowPlayingOverlay.BeginAnimation(UIElement.OpacityProperty,
-                    new DoubleAnimation(0, TimeSpan.FromMilliseconds(300)));
-                NowPlayingOverlay.IsHitTestVisible = false;
-            };
-            _overlayHideTimer.Start();
         }
 
         private void SongListTabButton_Click(object sender, RoutedEventArgs e)
@@ -229,7 +496,7 @@ namespace RoomClient.Views.Windows
         {
             if (DataContext is MainWindowViewModel vm)
             {
-                vm.Player.IsFullScreen = true;
+                vm.Player.IsFullScreen = !vm.Player.IsFullScreen;
             }
         }
 
@@ -253,6 +520,38 @@ namespace RoomClient.Views.Windows
 
             SongListView.ToggleRequested += SongListView_ToggleRequested;
             QueueView.ToggleRequested += QueueView_ToggleRequested;
+            PlayerContainer.SizeChanged += (s, e) =>
+            {
+                if (_isPlayerFullScreen)
+                {
+                    UpdateFullscreenPopupBounds();
+                }
+            };
+            SizeChanged += (s, e) =>
+            {
+                if (_isPlayerFullScreen)
+                {
+                    UpdateFullscreenPopupBounds();
+                    UpdateFullscreenExitButtonPopupPosition();
+                    UpdateFullscreenOneMinuteWarningPopupPosition();
+                }
+            };
+
+            ExitFullScreenButton.SizeChanged += (s, e) =>
+            {
+                if (_isPlayerFullScreen)
+                {
+                    UpdateFullscreenExitButtonPopupPosition();
+                }
+            };
+
+            FullscreenOneMinuteWarningContent.SizeChanged += (s, e) =>
+            {
+                if (_isPlayerFullScreen)
+                {
+                    UpdateFullscreenOneMinuteWarningPopupPosition();
+                }
+            };
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -268,7 +567,13 @@ namespace RoomClient.Views.Windows
                 vm.Player.PropertyChanged += (s, args) =>
                 {
                     if (args.PropertyName == nameof(PlayerViewModel.IsFullScreen))
+                    {
                         SetPlayerFullScreen(vm.Player.IsFullScreen);
+                    }
+                    else if (args.PropertyName == nameof(PlayerViewModel.ShowOneMinuteWarning))
+                    {
+                        UpdateFullscreenOneMinuteWarningVisibility();
+                    }
                 };
             }
 

@@ -27,9 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LibVLCSharp" Version="3.10.1" />
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.10.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="SocketIOClient" Version="4.0.4" />
     <PackageReference Include="Tools.InnoSetup" Version="7.0.2" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
     <PackageReference Include="WPF-UI" Version="4.3.0" />
     <PackageReference Include="WPF-UI.DependencyInjection" Version="4.3.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
