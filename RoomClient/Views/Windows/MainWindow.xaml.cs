@@ -225,12 +225,14 @@ namespace RoomClient.Views.Windows
             base.OnClosed(e);
         }
 
-        private const double FullscreenExitButtonRightMargin = 28;
-        private const double FullscreenExitButtonBottomMargin = 28;
+        private const double FullscreenControlsBottomMargin = 18;
+        private const double FullscreenControlsToggleRightMargin = 28;
+        private const double FullscreenControlsToggleBottomMargin = 28;
         private const double FullscreenOneMinuteWarningRightMargin = 28;
         private const double FullscreenOneMinuteWarningTopMargin = 24;
 
         private bool _isSidebarOpen = true;
+        private bool _areFullscreenControlsHidden;
 
         private void UpdateFullscreenPopupBounds()
         {
@@ -245,21 +247,21 @@ namespace RoomClient.Views.Windows
         }
 
 
-        private void UpdateFullscreenExitButtonPopupPosition()
+        private void UpdateFullscreenControlsTogglePopupPosition()
         {
-            if (ExitFullScreenButton is null || FullscreenExitButtonPopup is null)
+            if (FullscreenControlsShowButton is null || FullscreenControlsTogglePopup is null)
             {
                 return;
             }
 
-            ExitFullScreenButton.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            FullscreenControlsShowButton.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            var buttonWidth = ExitFullScreenButton.ActualWidth > 0
-                ? ExitFullScreenButton.ActualWidth
-                : ExitFullScreenButton.DesiredSize.Width;
-            var buttonHeight = ExitFullScreenButton.ActualHeight > 0
-                ? ExitFullScreenButton.ActualHeight
-                : ExitFullScreenButton.DesiredSize.Height;
+            var buttonWidth = FullscreenControlsShowButton.ActualWidth > 0
+                ? FullscreenControlsShowButton.ActualWidth
+                : FullscreenControlsShowButton.DesiredSize.Width;
+            var buttonHeight = FullscreenControlsShowButton.ActualHeight > 0
+                ? FullscreenControlsShowButton.ActualHeight
+                : FullscreenControlsShowButton.DesiredSize.Height;
 
             var hostWidth = ActualWidth > 0 ? ActualWidth : Width;
             var hostHeight = ActualHeight > 0 ? ActualHeight : Height;
@@ -269,8 +271,8 @@ namespace RoomClient.Views.Windows
                 return;
             }
 
-            FullscreenExitButtonPopup.HorizontalOffset = Math.Max(0, hostWidth - buttonWidth - FullscreenExitButtonRightMargin);
-            FullscreenExitButtonPopup.VerticalOffset = Math.Max(0, hostHeight - buttonHeight - FullscreenExitButtonBottomMargin);
+            FullscreenControlsTogglePopup.HorizontalOffset = Math.Max(0, hostWidth - buttonWidth - FullscreenControlsToggleRightMargin);
+            FullscreenControlsTogglePopup.VerticalOffset = Math.Max(0, hostHeight - buttonHeight - FullscreenControlsToggleBottomMargin);
         }
 
         private void UpdateFullscreenOneMinuteWarningPopupPosition()
@@ -297,6 +299,34 @@ namespace RoomClient.Views.Windows
             FullscreenOneMinuteWarningPopup.VerticalOffset = FullscreenOneMinuteWarningTopMargin;
         }
 
+        private void UpdateFullscreenControlsPopupPosition()
+        {
+            if (FullscreenControlsBar is null || FullscreenControlsPopup is null)
+            {
+                return;
+            }
+
+            FullscreenControlsBar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            var controlsWidth = FullscreenControlsBar.ActualWidth > 0
+                ? FullscreenControlsBar.ActualWidth
+                : FullscreenControlsBar.DesiredSize.Width;
+            var controlsHeight = FullscreenControlsBar.ActualHeight > 0
+                ? FullscreenControlsBar.ActualHeight
+                : FullscreenControlsBar.DesiredSize.Height;
+
+            var hostWidth = ActualWidth > 0 ? ActualWidth : Width;
+            var hostHeight = ActualHeight > 0 ? ActualHeight : Height;
+
+            if (hostWidth <= 0 || hostHeight <= 0 || controlsWidth <= 0 || controlsHeight <= 0)
+            {
+                return;
+            }
+
+            FullscreenControlsPopup.HorizontalOffset = Math.Max(0, (hostWidth - controlsWidth) / 2);
+            FullscreenControlsPopup.VerticalOffset = Math.Max(0, hostHeight - controlsHeight - FullscreenControlsBottomMargin);
+        }
+
         private void UpdateFullscreenOneMinuteWarningVisibility()
         {
             if (DataContext is not MainWindowViewModel vm)
@@ -313,6 +343,31 @@ namespace RoomClient.Views.Windows
                 UpdateLayout();
                 UpdateFullscreenOneMinuteWarningPopupPosition();
                 FullscreenOneMinuteWarningHost.Opacity = 1;
+            }
+        }
+
+        private void UpdateFullscreenControlsVisibility()
+        {
+            if (!_isPlayerFullScreen)
+            {
+                FullscreenControlsPopup.IsOpen = false;
+                FullscreenControlsTogglePopup.IsOpen = false;
+                return;
+            }
+
+            FullscreenControlsPopup.IsOpen = !_areFullscreenControlsHidden;
+            FullscreenControlsTogglePopup.IsOpen = _areFullscreenControlsHidden;
+
+            if (FullscreenControlsPopup.IsOpen)
+            {
+                UpdateLayout();
+                UpdateFullscreenControlsPopupPosition();
+            }
+
+            if (FullscreenControlsTogglePopup.IsOpen)
+            {
+                UpdateLayout();
+                UpdateFullscreenControlsTogglePopupPosition();
             }
         }
 
@@ -336,10 +391,9 @@ namespace RoomClient.Views.Windows
                 PlayerWrapperGrid.Margin = new Thickness(0);
                 PlayerContainer.CornerRadius = new CornerRadius(0);
 
+                _areFullscreenControlsHidden = false;
                 FullscreenOverlayPopup.IsOpen = false;
-                FullscreenExitButtonPopup.IsOpen = true;
-                UpdateLayout();
-                UpdateFullscreenExitButtonPopupPosition();
+                UpdateFullscreenControlsVisibility();
                 UpdateFullscreenOneMinuteWarningVisibility();
                 ShowFullscreenOverlay();
             }
@@ -368,7 +422,8 @@ namespace RoomClient.Views.Windows
                 PlayerWrapperGrid.ClearValue(FrameworkElement.MarginProperty);
                 PlayerContainer.CornerRadius = new CornerRadius(16);
 
-                FullscreenExitButtonPopup.IsOpen = false;
+                FullscreenControlsPopup.IsOpen = false;
+                FullscreenControlsTogglePopup.IsOpen = false;
                 FullscreenOneMinuteWarningPopup.IsOpen = false;
                 BottomPlayerBar.Visibility = Visibility.Visible;
             }
@@ -402,8 +457,16 @@ namespace RoomClient.Views.Windows
             FullscreenOverlayRootGrid.IsHitTestVisible = true;
             FullscreenOverlayRootGrid.BeginAnimation(UIElement.OpacityProperty,
                 new DoubleAnimation(1, TimeSpan.FromMilliseconds(200)));
-            FullscreenExitButtonHost.BeginAnimation(UIElement.OpacityProperty,
-                new DoubleAnimation(1, TimeSpan.FromMilliseconds(200)));
+            if (FullscreenControlsPopup.IsOpen)
+            {
+                FullscreenControlsHost.BeginAnimation(UIElement.OpacityProperty,
+                    new DoubleAnimation(1, TimeSpan.FromMilliseconds(200)));
+            }
+            if (FullscreenControlsTogglePopup.IsOpen)
+            {
+                FullscreenControlsToggleHost.BeginAnimation(UIElement.OpacityProperty,
+                    new DoubleAnimation(0.75, TimeSpan.FromMilliseconds(200)));
+            }
             if (FullscreenOneMinuteWarningPopup.IsOpen)
             {
                 FullscreenOneMinuteWarningHost.Opacity = 1;
@@ -419,8 +482,16 @@ namespace RoomClient.Views.Windows
                     // Fade overlay atas dan tombol exit agar tidak terlalu mengganggu video/lirik.
                     FullscreenOverlayRootGrid.BeginAnimation(UIElement.OpacityProperty,
                         new DoubleAnimation(0.35, TimeSpan.FromMilliseconds(500)));
-                    FullscreenExitButtonHost.BeginAnimation(UIElement.OpacityProperty,
-                        new DoubleAnimation(0.35, TimeSpan.FromMilliseconds(500)));
+                    if (FullscreenControlsPopup.IsOpen)
+                    {
+                        FullscreenControlsHost.BeginAnimation(UIElement.OpacityProperty,
+                            new DoubleAnimation(0.22, TimeSpan.FromMilliseconds(500)));
+                    }
+                    if (FullscreenControlsTogglePopup.IsOpen)
+                    {
+                        FullscreenControlsToggleHost.BeginAnimation(UIElement.OpacityProperty,
+                            new DoubleAnimation(0.55, TimeSpan.FromMilliseconds(500)));
+                    }
                     if (FullscreenOneMinuteWarningPopup.IsOpen)
                     {
                         FullscreenOneMinuteWarningHost.Opacity = 1;
@@ -430,16 +501,49 @@ namespace RoomClient.Views.Windows
             _overlayHideTimer.Start();
         }
 
-        private void ExitFullScreenButton_MouseEnter(object sender, MouseEventArgs e)
+        private void FullscreenControlsHost_MouseEnter(object sender, MouseEventArgs e)
         {
             if (!_isPlayerFullScreen) return;
 
             _overlayHideTimer?.Stop();
-            FullscreenExitButtonHost.BeginAnimation(UIElement.OpacityProperty,
+            FullscreenControlsHost.BeginAnimation(UIElement.OpacityProperty,
                 new DoubleAnimation(1, TimeSpan.FromMilliseconds(120)));
         }
 
-        private void ExitFullScreenButton_MouseLeave(object sender, MouseEventArgs e)
+        private void FullscreenControlsHost_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+            ShowFullscreenOverlay();
+        }
+
+        private void HideFullscreenControlsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+
+            _areFullscreenControlsHidden = true;
+            UpdateFullscreenControlsVisibility();
+            ShowFullscreenOverlay();
+        }
+
+        private void ShowFullscreenControlsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+
+            _areFullscreenControlsHidden = false;
+            UpdateFullscreenControlsVisibility();
+            ShowFullscreenOverlay();
+        }
+
+        private void FullscreenControlsToggleHost_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (!_isPlayerFullScreen) return;
+
+            _overlayHideTimer?.Stop();
+            FullscreenControlsToggleHost.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, TimeSpan.FromMilliseconds(120)));
+        }
+
+        private void FullscreenControlsToggleHost_MouseLeave(object sender, MouseEventArgs e)
         {
             if (!_isPlayerFullScreen) return;
             ShowFullscreenOverlay();
@@ -532,16 +636,25 @@ namespace RoomClient.Views.Windows
                 if (_isPlayerFullScreen)
                 {
                     UpdateFullscreenPopupBounds();
-                    UpdateFullscreenExitButtonPopupPosition();
+                    UpdateFullscreenControlsPopupPosition();
+                    UpdateFullscreenControlsTogglePopupPosition();
                     UpdateFullscreenOneMinuteWarningPopupPosition();
                 }
             };
 
-            ExitFullScreenButton.SizeChanged += (s, e) =>
+            FullscreenControlsBar.SizeChanged += (s, e) =>
             {
                 if (_isPlayerFullScreen)
                 {
-                    UpdateFullscreenExitButtonPopupPosition();
+                    UpdateFullscreenControlsPopupPosition();
+                }
+            };
+
+            FullscreenControlsShowButton.SizeChanged += (s, e) =>
+            {
+                if (_isPlayerFullScreen)
+                {
+                    UpdateFullscreenControlsTogglePopupPosition();
                 }
             };
 

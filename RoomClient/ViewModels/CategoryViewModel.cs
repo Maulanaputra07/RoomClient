@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using RoomClient.Core.Interfaces;
 using RoomClient.Core.Models;
+using RoomClient.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,9 +16,11 @@ namespace RoomClient.ViewModels
     {
         private readonly IYoutubeService _youtubeService;
         public SongListViewModel? SongList { get; set; } // di-wire oleh MainWindowViewModel, sama seperti pola lain
+        public SearchViewModel? Search { get; set; }
 
         public ObservableCollection<CategoryItem> Categories { get; } = new()
         {
+            new CategoryItem { Name = "Semua Lagu", Slug = string.Empty, Icon = "\uE71D" },
             new CategoryItem { Name = "Pop Indonesia", Slug = "pop-indonesia", Icon = "\uE8D6" },
             new CategoryItem { Name = "Dangdut", Slug = "dangdut", Icon = "\uE8D6" },
             new CategoryItem { Name = "Pop Barat", Slug = "pop-barat", Icon = "\uE8D6" },
@@ -45,18 +48,47 @@ namespace RoomClient.ViewModels
         private async Task SelectCategoryAsync(CategoryItem category)
         {
             SelectedCategory = category;
+
+            if (SongList is null)
+            {
+                return;
+            }
+
+            SongList.Results.Clear();
+            if (Search is not null)
+            {
+                Search.StatusMessage = $"Memuat kategori '{category.Name}'...";
+            }
+
+            if (string.IsNullOrWhiteSpace(category.Slug))
+            {
+                if (Search is not null)
+                {
+                    Search.StatusMessage = "Mode semua lagu aktif. Gunakan pencarian untuk menampilkan hasil.";
+                    Search.RefreshDisplayState();
+                }
+                return;
+            }
+
             IsLoading = true;
             try
             {
-                var results = await _youtubeService.GetByCategoryAsync(category.Slug); // DIUBAH dari SearchAsync
-                if (SongList is not null)
+                var results = await _youtubeService.GetByCategoryAsync(category.Slug);
+                System.Diagnostics.Debug.WriteLine($"[CATEGORY] Slug='{category.Slug}' -> {results.Count} result(s)");
+                foreach (var song in results)
                 {
-                    SongList.Results = new ObservableCollection<Song>(results);
+                    SongList.Results.Add(song);
+                }
+                if (Search is not null)
+                {
+                    Search.StatusMessage = results.Count > 0
+                        ? $"Menampilkan {results.Count} lagu dari kategori '{category.Name}'."
+                        : $"Tidak ada lagu pada kategori '{category.Name}'.";
+                    Search.RefreshDisplayState();
                 }
             }
             catch (Exception ex)
             {
-                // TAMBAHAN: tampilkan error ke user, misal via NowPlaying atau status text
                 System.Diagnostics.Debug.WriteLine($"Gagal load kategori {category.Slug}: {ex.Message}");
             }
             finally

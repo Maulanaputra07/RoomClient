@@ -19,10 +19,10 @@ namespace RoomClient.Core.Models
     public class YoutubeSearchItem
     {
         [JsonPropertyName("videoId")]
-        public required string VideoId { get; set; }
+        public string? VideoId { get; set; }
 
         [JsonPropertyName("title")]
-        public required string Title { get; set; }
+        public string? Title { get; set; }
 
         [JsonPropertyName("channel")]
         public string? Channel { get; set; }

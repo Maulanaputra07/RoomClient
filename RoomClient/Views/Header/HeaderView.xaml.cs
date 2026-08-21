@@ -21,8 +21,6 @@ namespace RoomClient.Views.Header
     /// </summary>
     public partial class HeaderView : UserControl
     {
-        private bool _isKeyboardInteraction;
-
         public HeaderView()
         {
             InitializeComponent();
@@ -48,6 +46,20 @@ namespace RoomClient.Views.Header
             }
         }
 
+        private void SearchTextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!SearchTextBox.IsKeyboardFocused)
+            {
+                SearchTextBox.Focus();
+                e.Handled = true;
+            }
+
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() =>
+            {
+                KeyboardPopup.IsOpen = true;
+            }));
+        }
+
         private void SearchTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter || e.Key == Key.Return)
@@ -63,40 +75,40 @@ namespace RoomClient.Views.Header
 
             var hitElement = e.OriginalSource as DependencyObject;
 
-            // Jika klik terjadi di dalam SearchTextBox, isi Popup, atau tombol Toggle Keyboard, jangan tutup
+            // Jika klik terjadi di dalam SearchTextBox atau isi Popup, jangan tutup
             if (IsElementInside(hitElement, SearchTextBox) ||
                 IsElementInside(hitElement, KeyboardPopup.Child))
             {
                 return;
             }
 
-            // Klik berada di luar area yang diizinkan -> tutup popup dan lepaskan fokus
+            // Klik di luar -> cukup tutup popup. Biarkan focus alami pindah sendiri
             KeyboardPopup.IsOpen = false;
-            Keyboard.ClearFocus();
         }
 
         private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
-            KeyboardPopup.IsOpen = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() =>
+            {
+                KeyboardPopup.IsOpen = true;
+            }));
         }
 
         private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            // Tunda penutupan agar klik di dalam Popup keyboard tidak langsung menutupnya.
-            // Saat user klik tombol di OnScreenKeyboard, focus pindah dari TextBox ke Button di Popup,
-            // sehingga LostFocus terpicu. Dengan delay singkat, kita cek apakah focus masih
-            // di dalam area Popup — jika ya, kembalikan focus ke TextBox dan biarkan popup tetap terbuka.
             Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() =>
             {
                 if (IsKeyboardFocusWithinPopup())
                 {
-                    // Focus masih di dalam popup keyboard — kembalikan focus ke TextBox
                     SearchTextBox.Focus();
+                    KeyboardPopup.IsOpen = true;
                     return;
                 }
 
-                // Focus benar-benar pindah ke luar area search+keyboard — tutup popup
-                KeyboardPopup.IsOpen = false;
+                if (!SearchTextBox.IsKeyboardFocused)
+                {
+                    KeyboardPopup.IsOpen = false;
+                }
             }));
         }
 
@@ -141,4 +153,3 @@ namespace RoomClient.Views.Header
         }
     }
 }
-

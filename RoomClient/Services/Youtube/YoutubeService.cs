@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace RoomClient.Services.Youtube
@@ -29,18 +31,18 @@ namespace RoomClient.Services.Youtube
                 return [];
             }
 
-            var url = $"/category/{Uri.EscapeDataString(categorySlug)}";
+            var url = $"youtube/category/{Uri.EscapeDataString(categorySlug)}";
 
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<YoutubeSearchResponse>(url);
+                var response = await ReadYoutubeSearchResponseAsync(url);
 
                 if (response is not { Success: true } || response.Data.Count == 0)
                 {
                     return [];
                 }
 
-                return response.Data.Select(MapToSong).ToList(); // DIUBAH: pakai mapping bersama
+                return response.Data.Select(MapToSong).ToList();
             }
             catch (Exception ex)
             {
@@ -57,14 +59,14 @@ namespace RoomClient.Services.Youtube
             var url = $"/youtube/search?q={Uri.EscapeDataString(keyword.Trim())}";
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<YoutubeSearchResponse>(url);
+                var response = await ReadYoutubeSearchResponseAsync(url);
 
                 if (response is not { Success: true } || response.Data.Count == 0)
                 {
                     return [];
                 }
 
-                return response.Data.Select(MapToSong).ToList(); // DIUBAH: pakai mapping bersama
+                return response.Data.Select(MapToSong).ToList();
             }
             catch (Exception ex)
             {
@@ -72,10 +74,122 @@ namespace RoomClient.Services.Youtube
             }
         }
 
+        private async Task<YoutubeSearchResponse?> ReadYoutubeSearchResponseAsync(string url)
+        {
+            using var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var rawJson = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"[YOUTUBE-API] GET {url}");
+            System.Diagnostics.Debug.WriteLine($"[YOUTUBE-API] RAW RESPONSE: {rawJson}");
+
+            try
+            {
+                using var document = JsonDocument.Parse(rawJson);
+                var root = document.RootElement;
+
+                var parsed = new YoutubeSearchResponse
+                {
+                    Success = root.TryGetProperty("success", out var successElement) && successElement.ValueKind == JsonValueKind.True
+                };
+
+                if (root.TryGetProperty("data", out var dataElement) && dataElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var itemElement in dataElement.EnumerateArray())
+                    {
+                        try
+                        {
+                            var item = new YoutubeSearchItem
+                            {
+                                VideoId = TryGetString(itemElement, "videoId"),
+                                Title = TryGetString(itemElement, "title"),
+                                Channel = TryGetString(itemElement, "channel"),
+                                Thumbnail = TryGetString(itemElement, "thumbnail"),
+                                DurationSeconds = TryGetInt32(itemElement, "duration"),
+                                ViewCount = TryGetInt64(itemElement, "viewCount"),
+                                Source = TryGetString(itemElement, "source") ?? "youtube",
+                                StreamUrl = TryGetString(itemElement, "streamUrl")
+                            };
+
+                            parsed.Data.Add(item);
+                        }
+                        catch (Exception itemEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[YOUTUBE-API] SKIP ITEM ERROR: {itemEx.Message} | ITEM: {itemElement}");
+                        }
+                    }
+                }
+
+                return parsed;
+            }
+            catch (JsonException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[YOUTUBE-API] JSON DESERIALIZE ERROR: {ex}");
+                throw new InvalidOperationException($"Response JSON tidak sesuai format: {ex.Message}", ex);
+            }
+        }
+
+        private static string? TryGetString(JsonElement element, string propertyName)
+        {
+            if (!element.TryGetProperty(propertyName, out var value))
+            {
+                return null;
+            }
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.String => value.GetString(),
+                JsonValueKind.Number => value.ToString(),
+                JsonValueKind.True => bool.TrueString,
+                JsonValueKind.False => bool.FalseString,
+                _ => null
+            };
+        }
+
+        private static int TryGetInt32(JsonElement element, string propertyName)
+        {
+            if (!element.TryGetProperty(propertyName, out var value))
+            {
+                return 0;
+            }
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var intValue))
+            {
+                return intValue;
+            }
+
+            if (value.ValueKind == JsonValueKind.String && int.TryParse(value.GetString(), out var parsed))
+            {
+                return parsed;
+            }
+
+            return 0;
+        }
+
+        private static long TryGetInt64(JsonElement element, string propertyName)
+        {
+            if (!element.TryGetProperty(propertyName, out var value))
+            {
+                return 0;
+            }
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var longValue))
+            {
+                return longValue;
+            }
+
+            if (value.ValueKind == JsonValueKind.String && long.TryParse(value.GetString(), out var parsed))
+            {
+                return parsed;
+            }
+
+            return 0;
+        }
+
         private static Song MapToSong(YoutubeSearchItem item) => new()
         {
             VideoId = item.VideoId ?? string.Empty,
-            Title = item.Title,
+            Title = item.Title ?? string.Empty,
             Artist = item.Channel,
             Duration = TimeSpan.FromSeconds(item.DurationSeconds),
             Thumbnail = item.Thumbnail,

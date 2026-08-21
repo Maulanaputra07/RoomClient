@@ -65,8 +65,9 @@
                  BorderBrush="#3B82F6"
                  BorderThickness="1"
                  VerticalContentAlignment="Center"
-                 IsEnabled="{Binding Search.IsBusy, Converter={StaticResource InverseBooleanConverter}}" 
+                 IsEnabled="{Binding Search.IsBusy, Converter={StaticResource InverseBooleanConverter}}"
                  Text="{Binding Search.SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                 PreviewMouseLeftButtonDown="SearchTextBox_PreviewMouseLeftButtonDown"
                  GotFocus="SearchTextBox_GotFocus"
                  LostFocus="SearchTextBox_LostFocus"
                  KeyDown="SearchTextBox_KeyDown">
@@ -77,7 +78,7 @@
 
                 <!-- Toggle Keyboard Button -->
                 <!--
-                <Button 
+                <Button
                 x:Name="ToggleKeyboardButton"
                 Grid.Column="1"
                 Width="38" Height="38"
@@ -184,7 +185,7 @@
                 Margin="8,0,0,0"
                 Height="38"
                 Command="{Binding Search.SearchCommand}"
-                Click="CariButton_Click"        
+                Click="CariButton_Click"
                         >
                     <Button.Style>
                         <Style TargetType="Button">

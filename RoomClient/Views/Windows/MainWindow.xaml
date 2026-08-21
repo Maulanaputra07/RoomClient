@@ -280,7 +280,7 @@
             </Grid>
         </Popup>
 
-        <Popup x:Name="FullscreenExitButtonPopup"
+        <Popup x:Name="FullscreenControlsPopup"
                AllowsTransparency="True"
                Placement="Relative"
                PlacementTarget="{Binding ElementName=MainWindowInstance}"
@@ -289,20 +289,133 @@
                IsOpen="False"
                StaysOpen="True"
                Focusable="False">
-            <Border x:Name="FullscreenExitButtonHost"
+            <Border x:Name="FullscreenControlsHost"
                     Background="Transparent"
-                    Opacity="1">
-                <Button x:Name="ExitFullScreenButton"
+                    Opacity="1"
+                    MouseEnter="FullscreenControlsHost_MouseEnter"
+                    MouseLeave="FullscreenControlsHost_MouseLeave">
+                <Border x:Name="FullscreenControlsBar"
                         Padding="16,10"
                         Background="#D90F172A"
-                        Foreground="White"
-                        BorderThickness="1"
                         BorderBrush="#33FFFFFF"
-                        Cursor="Hand"
-                        MouseEnter="ExitFullScreenButton_MouseEnter"
-                        MouseLeave="ExitFullScreenButton_MouseLeave"
-                        Click="ExitFullScreenButton_Click"
-                        ToolTip="Keluar dari Layar Penuh">
+                        BorderThickness="1"
+                        CornerRadius="18">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="Black" Opacity="0.6"/>
+                    </Border.Effect>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="&#xE892;"
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="14"
+                                Width="36" Height="36"
+                                Margin="0,0,6,0"
+                                Padding="0"
+                                Background="Transparent"
+                                Foreground="White"
+                                BorderThickness="0"
+                                Command="{Binding Player.PreviousCommand}"
+                                ToolTip="Previous"/>
+                        <Button FontFamily="Segoe MDL2 Assets"
+                                FontSize="16"
+                                Width="44" Height="44"
+                                Margin="0,0,6,0"
+                                Padding="0"
+                                Background="#FF1E293B"
+                                Foreground="White"
+                                BorderThickness="0"
+                                Command="{Binding Player.TogglePlayPauseCommand}"
+                                ToolTip="Play/Pause">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="&#xE768;"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Player.IsPlaying}" Value="True">
+                                            <Setter Property="Content" Value="&#xE769;"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="&#xE893;"
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="14"
+                                Width="36" Height="36"
+                                Margin="0,0,14,0"
+                                Padding="0"
+                                Background="Transparent"
+                                Foreground="White"
+                                BorderThickness="0"
+                                Command="{Binding Player.NextCommand}"
+                                ToolTip="Next"/>
+
+                        <ui:Button Icon="{Binding Player.Volume, Converter={StaticResource MuteIconConverter}}"
+                                   Command="{Binding Player.ToggleMuteCommand}"
+                                   Appearance="Transparent"
+                                   Margin="0,0,6,0" />
+
+                        <Slider Width="96"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="{Binding Player.Volume, Mode=TwoWay}"
+                                VerticalAlignment="Center"
+                                Margin="0,0,14,0" />
+
+                        <Button x:Name="FullscreenControlsExitButton"
+                                Content="&#xE73F;"
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="14"
+                                Width="36" Height="36"
+                                Margin="0,0,6,0"
+                                Padding="0"
+                                Background="Transparent"
+                                Foreground="#38BDF8"
+                                BorderThickness="0"
+                                Click="ExitFullScreenButton_Click"
+                                ToolTip="Keluar dari fullscreen"/>
+
+                        <Button x:Name="FullscreenControlsHideButton"
+                                Content="&#xE70D;"
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="14"
+                                Width="36" Height="36"
+                                Padding="0"
+                                Background="Transparent"
+                                Foreground="#FF94A3B8"
+                                BorderThickness="0"
+                                Click="HideFullscreenControlsButton_Click"
+                                ToolTip="Sembunyikan kontrol"/>
+                    </StackPanel>
+                </Border>
+            </Border>
+        </Popup>
+
+        <Popup x:Name="FullscreenControlsTogglePopup"
+               AllowsTransparency="True"
+               Placement="Relative"
+               PlacementTarget="{Binding ElementName=MainWindowInstance}"
+               HorizontalOffset="0"
+               VerticalOffset="0"
+               IsOpen="False"
+               StaysOpen="True"
+               Focusable="False">
+            <Border x:Name="FullscreenControlsToggleHost"
+                    Background="Transparent"
+                    Opacity="0.55"
+                    MouseEnter="FullscreenControlsToggleHost_MouseEnter"
+                    MouseLeave="FullscreenControlsToggleHost_MouseLeave">
+                <Button x:Name="FullscreenControlsShowButton"
+                        Content="&#xE70E;"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="14"
+                        Width="42"
+                        Height="42"
+                        Padding="0"
+                        Background="#D90F172A"
+                        Foreground="White"
+                        BorderBrush="#33FFFFFF"
+                        BorderThickness="1"
+                        Click="ShowFullscreenControlsButton_Click"
+                        ToolTip="Tampilkan kontrol fullscreen">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">
@@ -311,10 +424,9 @@
                                         <Border Background="{TemplateBinding Background}"
                                                 BorderBrush="{TemplateBinding BorderBrush}"
                                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="20">
+                                                CornerRadius="21">
                                             <ContentPresenter HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"
-                                                              Margin="{TemplateBinding Padding}"/>
+                                                              VerticalAlignment="Center"/>
                                         </Border>
                                     </ControlTemplate>
                                 </Setter.Value>
@@ -324,10 +436,6 @@
                     <Button.Effect>
                         <DropShadowEffect BlurRadius="16" ShadowDepth="0" Color="Black" Opacity="0.6"/>
                     </Button.Effect>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="⛶" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center" FontWeight="Bold" Foreground="#38BDF8"/>
-                        <TextBlock Text="Keluar" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    </StackPanel>
                 </Button>
             </Border>
         </Popup>

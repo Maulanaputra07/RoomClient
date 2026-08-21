@@ -107,6 +107,11 @@ namespace RoomClient.ViewModels
             OnPropertyChanged(nameof(DisplayState));
         }
 
+        public void RefreshDisplayState()
+        {
+            OnPropertyChanged(nameof(DisplayState));
+        }
+
         private async Task ExecuteSearchAsync()
         {
             if (string.IsNullOrWhiteSpace(SearchQuery))
@@ -120,6 +125,7 @@ namespace RoomClient.ViewModels
             try
             {
                 var results = await _youtubeService.SearchAsync(SearchQuery);
+                System.Diagnostics.Debug.WriteLine($"[SEARCH] Query='{SearchQuery}' -> {results.Count} result(s)");
                 Results.Clear();
                 foreach (var song in results)
                 {
@@ -147,7 +153,7 @@ namespace RoomClient.ViewModels
             finally
             {
                 OnPropertyChanged(nameof(DisplayState));
-            }  
+            }
         }
 
         [RelayCommand]
