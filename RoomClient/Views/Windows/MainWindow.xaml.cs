@@ -147,7 +147,7 @@ namespace RoomClient.Views.Windows
                 DirectStreamUrl = _debugOnlineStreamUrl,
             };
 
-            vm.Status.AddLog($"[DEBUG-VLC] Memutar Online Sample: {_debugOnlineStreamUrl}");
+            vm.Status.AddLog($"[DEBUG-STREAM] Memutar Online Sample (harus ke WebView2): {_debugOnlineStreamUrl}");
             await vm.Player.PlayAsync(testSong);
         }
 
@@ -186,9 +186,9 @@ namespace RoomClient.Views.Windows
                 DirectStreamUrl = _debugDatFilePath,
             };
 
-            vm.Status.AddLog($"[DEBUG-VLC] Memutar: {_debugDatFilePath}");
+            vm.Status.AddLog($"[DEBUG-DAT] Memutar file DAT (harus ke VLC): {_debugDatFilePath}");
 
-            // 4. Panggil PlayAsync — ini akan trigger VlcSourceUrl → VlcVideoView tampil
+            // 4. Panggil PlayAsync — ini akan trigger PlaybackSourceUrl → player surface yang sesuai tampil
             await vm.Player.PlayAsync(testSong);
         }
 #endif

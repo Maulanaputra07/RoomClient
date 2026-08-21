@@ -53,7 +53,7 @@ namespace RoomClient.ViewModels
         private bool _isMuted = false;
 
         [ObservableProperty]
-        private string? _vlcSourceUrl;
+        private string? _playbackSourceUrl;
 
         private double _previousVolume = 100;
         private bool _isSessionExpiredPending;
@@ -171,7 +171,7 @@ namespace RoomClient.ViewModels
         {
             if (IsSessionExpired) return;
 
-            var isCurrentlyPlaying = CurrentSong is not null && !string.IsNullOrEmpty(VlcSourceUrl);
+            var isCurrentlyPlaying = CurrentSong is not null && !string.IsNullOrEmpty(PlaybackSourceUrl);
 
             if (isCurrentlyPlaying)
             {
@@ -218,7 +218,7 @@ namespace RoomClient.ViewModels
         private async Task StopPlaybackCoreAsync(bool resetSessionClock, bool keepSessionState, string nowPlayingText)
         {
             _isSessionExpiredPending = false;
-            VlcSourceUrl = null;
+            PlaybackSourceUrl = null;
             NowPlaying = nowPlayingText;
             ShowOneMinuteWarning = false;
 
@@ -288,7 +288,7 @@ namespace RoomClient.ViewModels
                     return;
                 }
 
-                VlcSourceUrl = streamUrl;
+                PlaybackSourceUrl = streamUrl;
                 await _playerService.PlayAsync(song);
             }
             catch (Exception ex)

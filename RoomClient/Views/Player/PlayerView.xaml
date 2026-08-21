@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              mc:Ignorable="d"
              d:DesignHeight="380"
              d:DesignWidth="1200">
@@ -45,6 +46,10 @@
                                HorizontalAlignment="Stretch"
                                VerticalAlignment="Stretch"
                                Visibility="Visible"/>
+                <wv2:WebView2 x:Name="StreamWebView"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              Visibility="Collapsed"/>
             </Grid>
         </Border>
     </Grid>
